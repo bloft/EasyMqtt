@@ -10,8 +10,8 @@ class MqttMap {
 		String (*inFunction)() = NULL;
 
 		const char* name = "N/A";
-    int interval = 0;
-    unsigned long nextUpdate = 0; // Last read of data
+    int interval = -1;
+    unsigned long lastUpdate = 0; // Last read of data
 
     MqttMap* parent = NULL;
     MqttMap* next = NULL;
@@ -21,7 +21,7 @@ class MqttMap {
     MqttMap(const char* _name, MqttMap& _parent) {
       name = _name;
       parent = &_parent;
-      interval = 0;
+      interval = -1;
     }
 
     virtual String getTopic() {
@@ -31,7 +31,7 @@ class MqttMap {
         return String(name);
       }
     }
-    
+
 	public:
 		MqttMap(const char* _name) {
 			name = _name;
@@ -39,7 +39,7 @@ class MqttMap {
 		}
 
 		int getInterval() {
-      if(interval == 0) {
+      if(interval < 0) {
         return parent->getInterval();
       }
       return interval;
@@ -48,6 +48,12 @@ class MqttMap {
 		void setInterval(int _interval) {
 			interval = _interval;
 		}
+
+   void publish(PubSubClient& client, String message) {
+      String topic = getTopic();
+      printf("publish[%s]: %s\n", topic.c_str(), message.c_str());
+      client.publish(topic.c_str(), message.c_str());
+    }
 
 		void callback(const char* _topic, uint8_t* payload, unsigned int length) {
       if(strcmp(getTopic().c_str(), _topic) == 0) {
@@ -68,6 +74,9 @@ class MqttMap {
       } 
 		}
 
+		/**
+		 *
+		 */
 		void subscribe(PubSubClient& client) {
       if(outFunction != NULL) {
         String topic = getTopic();
@@ -81,15 +90,18 @@ class MqttMap {
       }
 		}
 
+		/**
+		 *
+		 */
 		void loop(PubSubClient& client) {
       if(inFunction != NULL) {
         unsigned long time = millis();
-        if(time >= nextUpdate) {
-          nextUpdate = time + (getInterval() * 1000);
-          String topic = getTopic();
-          String value = inFunction();
-          printf("Value(%s): %s\n", topic.c_str(), value.c_str());
-          client.publish(topic.c_str(), value.c_str());
+        if(time >= (lastUpdate + (getInterval() * 1000))) {
+					lastUpdate = time;
+					String value = inFunction();
+					if(value != "") {
+						publish(client, value);
+					}
         }
       }
       MqttMap* child = children;
@@ -99,6 +111,9 @@ class MqttMap {
         }
 		}
 
+		/**
+		 * 
+		 */
 		MqttMap & operator[](const char* name) {
 			MqttMap * child = children;
         while(child != NULL) {
@@ -113,7 +128,7 @@ class MqttMap {
         return *children;
 		}
 
-      /**
+    /**
      * Read data from function and send it to mqtt
      */
     void operator<<(String (*inFunction)()) {

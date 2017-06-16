@@ -31,6 +31,7 @@ class EasyMqtt : public MqttMap {
 				if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
 					Serial.println("MQTT connected");
 					subscribe(mqttClient);
+					getDiag()["log"].publish(mqttClient, "connected to MQTT");
 				} else {
 					Serial.print("failed, rc=");
 					Serial.print(mqttClient.state());
@@ -44,8 +45,9 @@ class EasyMqtt : public MqttMap {
 		EasyMqtt() : MqttMap("easyMqtt") {
 			deviceId = String(ESP.getChipId());
 
-      getDiag().setInterval(30l);
+      getDiag().setInterval(30);
       getDiag()["mem"]["heap"] << [](){ return String(ESP.getFreeHeap()); };
+      getDiag()["uptime"] << [](){ return String(millis()); };
 		}
 
 		/**
@@ -59,7 +61,7 @@ class EasyMqtt : public MqttMap {
         delay(500);
         Serial.print(".");
       }
-      Serial.println("WiFi connected");  
+      Serial.println("WiFi connected");
       Serial.println("IP address: ");
       Serial.println(WiFi.localIP());
 
