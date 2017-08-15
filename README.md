@@ -1,5 +1,5 @@
 # EasyMqtt
-Easy handling of Mqtt on esp6288
+Easy handling of Mqtt on esp8266
 
 This library is currentlly under heavy development.
 And shoud not be used at the moment.
@@ -19,7 +19,7 @@ void setup() {
 	mqtt.mqtt("host", 1883, "user", "pass");
 
 
-	mqtt["wifi"]["rssi"] << [](){ return String(WiFi.RSSI()); };
+	mqtt["foo"] << [](){ return "bar"; };
 }
 
 void loop() {

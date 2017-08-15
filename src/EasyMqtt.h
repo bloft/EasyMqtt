@@ -10,7 +10,7 @@ class EasyMqtt : public MqttMap {
     WiFiClient wifiClient;
     PubSubClient mqttClient;
 
-    String deviceId = "EasyMqtt";
+    String deviceId = "deviceId";
     const char* mqtt_username = "N/A";
     const char* mqtt_password = "N/A";
 
@@ -19,19 +19,14 @@ class EasyMqtt : public MqttMap {
       return String("easyMqtt/") + deviceId;
     }
 
-    MqttMap & getDiag() {
-      return operator[]("diag");
-    }
-
     /**
        Handle connections to mqtt
     */
     void mqttReconnect() {
       while (!mqttClient.connected()) {
         if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
-          Serial.println("MQTT connected");
-          subscribe(mqttClient);
-          getDiag()["log"].publish(mqttClient, "connected to MQTT");
+          debug("Connected to MQTT");
+          subscribe();
         } else {
           Serial.print("failed, rc=");
           Serial.print(mqttClient.state());
@@ -42,16 +37,24 @@ class EasyMqtt : public MqttMap {
     }
 
   public:
-    EasyMqtt() : MqttMap("easyMqtt") {
+    EasyMqtt() : MqttMap("easyMqtt", mqttClient) {
       deviceId = String(ESP.getChipId());
 
-      getDiag().setInterval(30);
-      getDiag()["mem"]["heap"] << []() {
+      get("system").setInterval(30);
+      get("system")["mem"]["heap"] << []() {
         return String(ESP.getFreeHeap());
       };
-      getDiag()["uptime"] << []() {
+      get("system")["uptime"] << []() {
         return String(millis());
       };
+      get("system")["reset"] >> [](String value) {
+        ESP.reset();
+      };
+    }
+
+    void debug(String msg) {
+      Serial.println(msg);
+      get("system")["debug"].publish(msg);
     }
 
     /**
@@ -73,11 +76,14 @@ class EasyMqtt : public MqttMap {
       Serial.println(ESP.getChipId());
 
       // Setup wifi diag
-      getDiag()["wifi"]["rssi"] << []() {
+      get("system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
       };
-      getDiag()["wifi"]["ssid"] << []() {
+      get("system")["wifi"]["ssid"] << []() {
         return WiFi.SSID();
+      };
+      get("system")["wifi"]["ip"] << []() {
+        return WiFi.localIP().toString();
       };
     }
 
@@ -100,7 +106,7 @@ class EasyMqtt : public MqttMap {
     void loop() {
       mqttReconnect();
       mqttClient.loop();
-      MqttMap::loop(mqttClient);
+      MqttMap::loop();
     }
 };
 
