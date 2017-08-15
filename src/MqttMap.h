@@ -64,8 +64,7 @@ class MqttMap {
     */
     void subscribe() {
       if (outFunction != NULL) {
-        String topic = getTopic();
-        client->subscribe(topic.c_str());
+        client->subscribe(getTopic().c_str());
       }
       MqttMap* child = children;
       while (child != NULL) {

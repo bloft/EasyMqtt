@@ -18,7 +18,7 @@ void setup() {
 	mqtt.mqtt("host", 1883, "user", "pass");
 
 
-	mqtt["foo"] << [](){ return "bar"; };
+	mqtt["foo"] << [](){ return String("bar"); };
 }
 
 void loop() {
