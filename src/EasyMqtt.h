@@ -24,9 +24,10 @@ class EasyMqtt : public MqttMap {
     */
     void mqttReconnect() {
       while (!mqttClient.connected()) {
-        if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
+        if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password), get("system")["connected"].getTopic().c_str(), 2, 0, "false") {
           debug("Connected to MQTT");
           subscribe();
+          get("system")["connected"].publish("true");
         } else {
           Serial.print("failed, rc=");
           Serial.print(mqttClient.state());
