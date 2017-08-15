@@ -2,7 +2,6 @@
 Easy handling of Mqtt on esp8266
 
 This library is currentlly under heavy development.
-And shoud not be used at the moment.
 
 ## Examble usage EasyMqtt
 ```C++

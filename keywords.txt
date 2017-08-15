@@ -7,11 +7,20 @@
 #######################################
 
 EasyMqtt	KEYWORD1
+MqttMap	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
+wifi	KEYWORD2
+mqtt	KEYWORD2
+loop	KEYWORD2
+debug	KEYWORD2
+getInterval	KEYWORD2
+setInterval	KEYWORD2
+publish	KEYWORD2
+get	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
