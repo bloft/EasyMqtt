@@ -9,6 +9,9 @@
 
 ## Future
 
+### Support writing to a topic with a subscriber
+Support both << and >> on the same topic with out read out own published values
+
 ### Add system info
  * easyMqtt/$id/system/uptime
  * easyMqtt/$id/system/mem
