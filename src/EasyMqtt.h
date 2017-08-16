@@ -28,9 +28,11 @@ class EasyMqtt : public MqttMap {
           debug("Connected to MQTT");
           subscribe();
         } else {
+          #ifdef DEBUG
           Serial.print("failed, rc=");
           Serial.print(mqttClient.state());
           Serial.println(" try again in 5 seconds");
+          #endif
           delay(5000);
         }
       }
@@ -53,7 +55,9 @@ class EasyMqtt : public MqttMap {
     }
 
     void debug(String msg) {
+      #ifdef DEBUG
       Serial.println(msg);
+      #endif
       get("system")["debug"].publish(msg);
     }
 
@@ -66,14 +70,18 @@ class EasyMqtt : public MqttMap {
 
       while (WiFi.status() != WL_CONNECTED) {
         delay(500);
+        #ifdef DEBUG
         Serial.print(".");
+        #endif
       }
+      #ifdef DEBUG
       Serial.println("WiFi connected");
       Serial.print("IP address: ");
       Serial.println(WiFi.localIP());
 
       Serial.print("Chip ID : ");
       Serial.println(ESP.getChipId());
+      #endif
 
       // Setup wifi diag
       get("system")["wifi"]["rssi"] << []() {
@@ -99,8 +107,10 @@ class EasyMqtt : public MqttMap {
       mqtt_username = username;
       mqtt_password = password;
       
+      #ifdef DEBUG
       Serial.print("Topic: ");
       Serial.println(getTopic());
+      #endif
     }
 
     /**
