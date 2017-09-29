@@ -1,0 +1,4 @@
+#!/usr/bin/php
+<?php
+
+# ToDo split template.html and create a simple html.h file with the content
