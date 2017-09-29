@@ -52,6 +52,7 @@ class EasyMqtt : public MqttMap {
       get("system")["reset"] >> [](String value) {
         ESP.reset();
       };
+      // ToDo: Registre config
     }
 
     void debug(String msg) {
@@ -59,6 +60,10 @@ class EasyMqtt : public MqttMap {
       Serial.println(msg);
       #endif
       get("system")["debug"].publish(msg);
+    }
+
+    void debug(String key, String value) {
+      debug(key + " = " + value);
     }
 
     /**
@@ -111,6 +116,15 @@ class EasyMqtt : public MqttMap {
       Serial.print("Topic: ");
       Serial.println(getTopic());
       #endif
+    }
+
+    char* config(const char* key, const char* defaultValue) {
+      // return get("config")[key]->getValue(defaultValue);
+      return (char*)defaultValue;
+    }
+
+    int configInt(const char* key, int defaultValue) {
+      return defaultValue;
     }
 
     /**
