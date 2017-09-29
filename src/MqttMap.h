@@ -20,16 +20,16 @@ class MqttMap {
     MqttMap* children = NULL;
 
   protected:
-    MqttMap(const char* _name, PubSubClient& _mqttClient, MqttMap& _parent) {
-      name = _name;
-      parent = &_parent;
-      client = &_mqttClient;
+    MqttMap(const char* name, PubSubClient& mqttClient, MqttMap& parent) {
+      MqttMap::name = name;
+      MqttMap::parent = &parent;
+      client = &mqttClient;
       interval = -1;
     }
 
-    MqttMap(const char* _name, PubSubClient& _mqttClient) {
-      name = _name;
-      client = &_mqttClient;
+    MqttMap(const char* name, PubSubClient& mqttClient) {
+      MqttMap::name = name;
+      client = &mqttClient;
       interval = 5;
     }
 
@@ -41,8 +41,8 @@ class MqttMap {
       }
     }
 
-    void callback(const char* _topic, uint8_t* payload, unsigned int length) {
-      if (strcmp(getTopic().c_str(), _topic) == 0) {
+    void callback(const char* topic, uint8_t* payload, unsigned int length) {
+      if (strcmp(getTopic().c_str(), topic) == 0) {
         if (outFunction != NULL) {
           String _payload = "";
           for (int i = 0; i < length; i++) {
@@ -53,9 +53,14 @@ class MqttMap {
       } else {
         MqttMap* child = children;
         while (child != NULL) {
-          child->callback(_topic, payload, length);
+          child->callback(topic, payload, length);
           child = child->next;
         }
+        /*
+        each([=](MqttMap* child) {
+          child->callback(_topic, payload, length);
+        });
+        */
       }
     }
     
@@ -66,11 +71,9 @@ class MqttMap {
       if (outFunction != NULL) {
         client->subscribe(getTopic().c_str());
       }
-      MqttMap* child = children;
-      while (child != NULL) {
+      each([&](MqttMap* child){
         child->subscribe();
-        child = child->next;
-      }
+      });
     }
 
     /**
@@ -87,9 +90,18 @@ class MqttMap {
           }
         }
       }
+      each([&](MqttMap* child){
+        child->loop();
+      });
+    }
+
+    /**
+     * Iterate over each child
+     */
+    void each(void (*f)(MqttMap*)) {
       MqttMap* child = children;
       while (child != NULL) {
-        child->loop();
+        f(child);
         child = child->next;
       }
     }
@@ -102,8 +114,8 @@ class MqttMap {
       return interval;
     }
 
-    void setInterval(int _interval) {
-      interval = _interval;
+    void setInterval(int interval) {
+      MqttMap::interval = interval;
     }
 
     void publish(String message) {
