@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Device Info</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+  </head>
+  <body>
+		<div class="container">
+      <h1>Device Info</h1>
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" class="active"><a href="#devices" aria-controls="devices" role="tab" data-toggle="tab">
+            <span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span>Devices
+        </a></li>
+				<li role="presentation"><a href="#config" aria-controls="config" role="tab" data-toggle="tab">
+            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>Config
+        </a></li>
+			</ul>
+			<div class="tab-content" style="border-style: solid; border-color: #ddd; border-width: 0px 1px 1px 1px">
+				<div role="tabpanel" class="tab-pane active" id="devices">
+          <br />
+          <div class="container-fluid">
+  		      <div class="row">
+
+              <!-- Single sensor info -->
+	    	      <div class="col-md-4">
+                <div class="panel panel-info">
+                  <div class="panel-heading"><strong>door/state</strong></div>
+                  <div class="panel-body">closed</div>
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
+                </div>
+              </div>
+
+              <!-- Single sensor info -->
+	    	      <div class="col-md-4">
+                <div class="panel panel-info">
+                  <div class="panel-heading"><strong>temperature</strong></div>
+                  <div class="panel-body">24.64</div>
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
+                </div>
+              </div>
+
+           </div>
+          </div>
+				</div>
+				<div role="tabpanel" class="tab-pane" id="config">
+          <br />
+          <div class="container-fluid">
+  		      <div class="row">
+	  		      <div class="col-md-12">
+								<div class="alert alert-warning" role="alert">
+									<strong>Warning!</strong> Not connected to WiFi
+								</div>
+              	<form class="form-horizontal">
+									<h3>WiFi</h3><hr/>
+									<div class="form-group">
+    								<label for="inputEmail3" class="col-sm-2 control-label">Email</label>
+    								<div class="col-sm-8">
+      								<input type="email" class="form-control" id="inputEmail3" placeholder="Rssd">
+    								</div>
+								  </div>
+									<div class="form-group">
+    								<label for="inputEmail3" class="col-sm-2 control-label">Password</label>
+    								<div class="col-sm-8">
+      								<input type="password" class="form-control" id="inputPassword" placeholder="Password">
+    								</div>
+								  </div>
+									</br>
+									<h3>MQTT</h3><hr/>
+									<div class="form-group">
+    								<label for="inputUsername" class="col-sm-2 control-label">Username</label>
+    								<div class="col-sm-8">
+      								<input type="text" class="form-control" id="inputUsername" placeholder="Username">
+    								</div>
+								  </div>
+									<div class="form-group">
+    								<label for="inputPassword" class="col-sm-2 control-label">Password</label>
+    								<div class="col-sm-8">
+      								<input type="password" class="form-control" id="inputPassword" placeholder="Password">
+    								</div>
+								  </div>
+									<hr/>
+									<div class="form-group">
+    								<div class="col-sm-offset-9 col-sm-2">
+      								<button type="submit" class="btn btn-default">Save</button>
+    								</div>
+								  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+				</div>
+			</div>
+		</div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  </body>
+</html>
