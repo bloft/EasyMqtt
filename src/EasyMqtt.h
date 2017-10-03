@@ -2,13 +2,17 @@
 #define EasyMqtt_h
 
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 #include <PubSubClient.h>
 #include "MqttMap.h"
+#include "html.h"
 
 class EasyMqtt : public MqttMap {
   private:
     WiFiClient wifiClient;
     PubSubClient mqttClient;
+
+    std::unique_ptr<ESP8266WebServer> webServer;
 
     String deviceId = "deviceId";
     const char* mqtt_username = "N/A";
@@ -78,6 +82,7 @@ class EasyMqtt : public MqttMap {
         #ifdef DEBUG
         Serial.print(".");
         #endif
+        // ToDo: handle timeout, and create AP
       }
       #ifdef DEBUG
       Serial.println("WiFi connected");
@@ -87,6 +92,8 @@ class EasyMqtt : public MqttMap {
       Serial.print("Chip ID : ");
       Serial.println(ESP.getChipId());
       #endif
+
+      setupWeb();
 
       // Setup wifi diag
       get("system")["wifi"]["rssi"] << []() {
@@ -98,6 +105,35 @@ class EasyMqtt : public MqttMap {
       get("system")["wifi"]["ip"] << []() {
         return WiFi.localIP().toString();
       };
+    }
+
+    void setupWeb() {
+      webServer.reset(new ESP8266WebServer(80));
+      webServer->on("/", std::bind(&EasyMqtt::handleWebRoot, this));
+      //webServer->on("/rest/...", std::bind(&EasyMqtt::handleWebRest, this, "..."));
+      webServer->onNotFound(std::bind(&EasyMqtt::handleNotFound, this));
+      webServer->begin();
+    }
+
+    void handleRoot() {
+      String page = "";
+      page += HTML_HEADER;
+      page += HTML_SENSOR;
+      page += HTML_INPUT_PANEL;
+      page += HTML_INPUT;
+      page += HTML_FOOTER;
+      webServer->send(200, "text/html", page);
+    }
+
+    void handleWebRest(String rest) {
+      webServer->send(200, "text/html", page);
+    }
+
+    void handleNotFound() {
+      webServer->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      webServer->sendHeader("Pragma", "no-cache");
+      webServer->sendHeader("Expires", "-1");
+      webServer->send ( 404, "text/plain", "Not Found" );
     }
 
     /**
@@ -131,6 +167,7 @@ class EasyMqtt : public MqttMap {
        Handle the normal loop
     */
     void loop() {
+      webServer->handleClient();
       mqttReconnect();
       mqttClient.loop();
       MqttMap::loop();

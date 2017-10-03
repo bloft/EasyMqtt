@@ -1,3 +1,4 @@
+<!-- split:header -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -30,17 +31,19 @@
           <br />
           <div class="container-fluid">
   		      <div class="row">
+<!-- split:header -->
 
-              <!-- Single sensor info -->
+<!-- split:sensor -->
 	    	      <div class="col-md-4">
                 <div class="panel panel-info">
-                  <div class="panel-heading"><strong>power</strong></div>
+                  <div class="panel-heading"><strong>{name}</strong></div>
                   <div class="panel-body">
-                    <span class="label label-success">ON</span>
+                    {value}
                   </div>
-                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> {last_updated}</div> 
                 </div>
               </div>
+<!-- split:sensor -->
 
               <!-- Single sensor info -->
 	    	      <div class="col-md-4">
@@ -143,6 +146,7 @@
                 </div>
               </div>
 
+<!-- split:input_panel -->
            </div>
           </div>
 				</div>
@@ -151,11 +155,13 @@
           <br />
           <div class="container-fluid">
   		      <div class="row">
+<!-- split:input_panel -->
 
               <!-- Input data -->
+<!-- split:input -->
 	    	      <div class="col-md-4">
                 <div class="panel panel-success">
-                  <div class="panel-heading"><strong>test</strong></div>
+                  <div class="panel-heading"><strong>{name}</strong></div>
                   <div class="panel-body">
                     <form>
                       <div class="input-group">
@@ -168,7 +174,9 @@
                   </div>
                 </div>
               </div>
+<!-- split:input -->
 
+<!-- split:footer -->
            </div>
           </div>
 				</div>
@@ -209,6 +217,8 @@
       								<input type="password" class="form-control" id="inputPassword" placeholder="Password">
     								</div>
 								  </div>
+
+<!--
 									</br>
 									<h3>Other</h3><hr/>
 
@@ -218,7 +228,7 @@
       								<input type="text" class="form-control" id="inputFoo" placeholder="Foo">
     								</div>
 								  </div>
-
+-->
 									<hr/>
 									<div class="form-group">
     								<div class="col-sm-offset-9 col-sm-2">
@@ -237,9 +247,7 @@
   		      <div class="row">
 	  		      <div class="col-md-12">
                 <p>Device is using EasyMqtt version 0.0.1</p>
-                Device Id: 12345678<br />
-                Endpoints:<br />
-                  * fdsafda/gfdsg(fgsd
+                Device Id: {device_id}<br />
               </div>
             </div>
           </div>
@@ -252,3 +260,4 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   </body>
 </html>
+<!-- split:footer -->
