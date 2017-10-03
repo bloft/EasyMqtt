@@ -110,22 +110,29 @@ class EasyMqtt : public MqttMap {
     void setupWeb() {
       webServer.reset(new ESP8266WebServer(80));
       webServer->on("/", std::bind(&EasyMqtt::handleWebRoot, this));
-      //webServer->on("/rest/...", std::bind(&EasyMqtt::handleWebRest, this, "..."));
       webServer->onNotFound(std::bind(&EasyMqtt::handleNotFound, this));
       webServer->begin();
     }
 
-    void handleRoot() {
+    void handleWebRoot() {
       String page = "";
-      page += HTML_HEADER;
-      page += HTML_SENSOR;
-      page += HTML_INPUT_PANEL;
-      page += HTML_INPUT;
-      page += HTML_FOOTER;
-      webServer->send(200, "text/html", page);
-    }
+      page += FPSTR(HTML_HEADER);
 
-    void handleWebRest(String rest) {
+	// Sensors
+      page += FPSTR(HTML_SENSOR);
+      page.replace("{name}", "door");
+      page.replace("{value}", "123");
+      page.replace("{last_updated}", "123");
+
+      page += FPSTR(HTML_INPUT_PANEL);
+
+	// Inputs
+      page += FPSTR(HTML_INPUT);
+      page.replace("{name}", "door");
+
+      page += FPSTR(HTML_FOOTER);
+      page.replace("{device_id}", deviceId);
+      page.replace("{topic}", getTopic());
       webServer->send(200, "text/html", page);
     }
 
