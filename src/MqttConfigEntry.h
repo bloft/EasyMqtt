@@ -1,6 +1,7 @@
 #ifndef EasyConfig_h
 #define EasyConfig_h
 
+#include "FS.h" // for SPIFFS
 #include "MqttEntry.h"
 
 class MqttConfigEntry : public MqttEntry {
@@ -24,25 +25,37 @@ class MqttConfigEntry : public MqttEntry {
       return value;
     }
 
+  private:
     String toString() {
       return String(getName()) + "=" + getValue();
     }
 
-
-
-  private:
     static EasyConfig* load() {
+      SPIFFS.begin();
+      File f = SPIFFS.open("/config.cfg", "r");
+      if (f) {
+        while(f.available()) {
+          String line = f.readStringUntil('\n');
+          int pos = line.indexOf("=");
+          String key = line.substring(0, pos);
+          String value = line.substring(pos+1);
+          Serial.println(line);
+        }
+        f.close();
+      }
       // ToDo: read lines from file, parse line, create EasyConfig object
       return NULL;
     }
 
     void store() {
-      // f.open
-      each([&](MqttEntry* entry) {
-        // f.println(entry.toString().c_str());
-        Serial.println(entry.toString());
-      });
-      // f.close
+      SPIFFS.begin();
+      File f = SPIFFS.open("/config.cfg", "w");
+      if (f) {
+        each([&](MqttEntry* entry) {
+          f.println(entry.toString().c_str());
+        });
+        f.close();
+      }
     }
 }
 
