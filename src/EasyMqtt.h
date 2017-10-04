@@ -135,7 +135,7 @@ class EasyMqtt : public MqttEntry {
       mqttClient.loop();
       webPortal.loop();
       each([](MqttEntry* entry){
-          entry->loop();
+          entry->update();
       });
     }
 };

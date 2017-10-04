@@ -38,13 +38,11 @@ class MqttEntry {
   public:
     void callback(const char* topic, uint8_t* payload, unsigned int length) {
       if (strcmp(getTopic().c_str(), topic) == 0) {
-        if (isOut()) {
-          String _payload = "";
-          for (int i = 0; i < length; i++) {
-            _payload += (char)payload[i];
-          }
-          outFunction(_payload);
+        String _payload = "";
+        for (int i = 0; i < length; i++) {
+          _payload += (char)payload[i];
         }
+        update(_payload);
       }
     }
     
@@ -60,7 +58,7 @@ class MqttEntry {
     /**
      * Request a updated value if needed
      */
-    void loop() {
+    void update() {
       if (isIn()) {
         unsigned long time = millis();
         if (time >= (lastUpdate + (getInterval() * 1000))) {
@@ -72,6 +70,12 @@ class MqttEntry {
           }
         }
       }
+    }
+
+    void update(String payload) {
+        if (isOut()) {
+          outFunction(payload);
+        }
     }
 
     bool isIn() {

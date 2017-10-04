@@ -3,7 +3,7 @@
 
 #include "MqttEntry.h"
 
-class EasyConfig : public MqttEntry {
+class MqttConfigEntry : public MqttEntry {
   public:
     EasyConfig(char* key, char* value) {
       >> [](String value){
@@ -12,7 +12,11 @@ class EasyConfig : public MqttEntry {
       };
     }
 
-    char* getValue(char* defaultValue) {
+    String getKey() {
+      return getTopic();
+    }
+
+    String getValue(String defaultValue) {
       String value = getValue();
       if(value == NULL) {
         value = defaultValue;
@@ -34,9 +38,9 @@ class EasyConfig : public MqttEntry {
 
     void store() {
       // f.open
-      each([&](MqttEntry* child) {
-        // f.println(child.toString().c_str());
-        Serial.println(child.toString());
+      each([&](MqttEntry* entry) {
+        // f.println(entry.toString().c_str());
+        Serial.println(entry.toString());
       });
       // f.close
     }

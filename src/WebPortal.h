@@ -27,7 +27,7 @@ class WebPortal {
     page += FPSTR(HTML_HEADER);
 
 	  // Sensors
-    mqttEntry->each([&page](MqttEntry* entry){
+    mqttEntry->each([&](MqttEntry* entry){
       if(entry->isOut()) {
         page += FPSTR(HTML_SENSOR);
         page.replace("{name}", entry->getTopic());
@@ -39,7 +39,7 @@ class WebPortal {
     page += FPSTR(HTML_INPUT_PANEL);
 
 	  // Inputs
-    mqttEntry->each([&page](MqttEntry* entry){
+    mqttEntry->each([&](MqttEntry* entry){
       if(entry->isIn()) {
         page += FPSTR(HTML_INPUT);
         page.replace("{name}", entry->getTopic());
