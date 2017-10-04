@@ -2,27 +2,22 @@
 #define EasyMqtt_h
 
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include <PubSubClient.h>
-#include "MqttMap.h"
+#include "MqttEntry.h"
+#include "WebPortal.h"
 #include "html.h"
 
-class EasyMqtt : public MqttMap {
+class EasyMqtt : public MqttEntry {
   private:
     WiFiClient wifiClient;
     PubSubClient mqttClient;
-
-    std::unique_ptr<ESP8266WebServer> webServer;
+    WebPortal webPortal;
 
     String deviceId = "deviceId";
     const char* mqtt_username = "N/A";
     const char* mqtt_password = "N/A";
 
   protected:
-    virtual String getTopic() {
-      return String("easyMqtt/") + deviceId;
-    }
-
     /**
        Handle connections to mqtt
     */
@@ -30,7 +25,9 @@ class EasyMqtt : public MqttMap {
       while (!mqttClient.connected()) {
         if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
           debug("Connected to MQTT");
-          subscribe();
+          each([](MqttEntry* entry){
+            entry->subscribe();
+          });
         } else {
           #ifdef DEBUG
           Serial.print("failed, rc=");
@@ -43,7 +40,7 @@ class EasyMqtt : public MqttMap {
     }
 
   public:
-    EasyMqtt() : MqttMap("easyMqtt", mqttClient) {
+    EasyMqtt() : MqttEntry("easyMqtt", mqttClient) {
       deviceId = String(ESP.getChipId());
 
       get("system").setInterval(30);
@@ -56,7 +53,6 @@ class EasyMqtt : public MqttMap {
       get("system")["reset"] >> [](String value) {
         ESP.reset();
       };
-      // ToDo: Registre config
     }
 
     void debug(String msg) {
@@ -68,6 +64,10 @@ class EasyMqtt : public MqttMap {
 
     void debug(String key, String value) {
       debug(key + " = " + value);
+    }
+    
+    virtual String getTopic() {
+      return String("easyMqtt/") + deviceId;
     }
 
     /**
@@ -93,7 +93,7 @@ class EasyMqtt : public MqttMap {
       Serial.println(ESP.getChipId());
       #endif
 
-      setupWeb();
+      webPortal.setup(*this);
 
       // Setup wifi diag
       get("system")["wifi"]["rssi"] << []() {
@@ -107,49 +107,15 @@ class EasyMqtt : public MqttMap {
       };
     }
 
-    void setupWeb() {
-      webServer.reset(new ESP8266WebServer(80));
-      webServer->on("/", std::bind(&EasyMqtt::handleWebRoot, this));
-      webServer->onNotFound(std::bind(&EasyMqtt::handleNotFound, this));
-      webServer->begin();
-    }
-
-    void handleWebRoot() {
-      String page = "";
-      page += FPSTR(HTML_HEADER);
-
-	// Sensors
-      page += FPSTR(HTML_SENSOR);
-      page.replace("{name}", "door");
-      page.replace("{value}", "123");
-      page.replace("{last_updated}", "123");
-
-      page += FPSTR(HTML_INPUT_PANEL);
-
-	// Inputs
-      page += FPSTR(HTML_INPUT);
-      page.replace("{name}", "door");
-
-      page += FPSTR(HTML_FOOTER);
-      page.replace("{device_id}", deviceId);
-      page.replace("{topic}", getTopic());
-      webServer->send(200, "text/html", page);
-    }
-
-    void handleNotFound() {
-      webServer->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      webServer->sendHeader("Pragma", "no-cache");
-      webServer->sendHeader("Expires", "-1");
-      webServer->send ( 404, "text/plain", "Not Found" );
-    }
-
     /**
        Setup connection to mqtt
     */
     void mqtt(const char* host, int port, const char* username, const char* password) {
       mqttClient.setClient(wifiClient);
       mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
-        callback(topic, payload, length);
+        each([=](MqttEntry* entry){
+          entry->callback(topic, payload, length);
+        });
       });
       mqttClient.setServer(host, port);
       mqtt_username = username;
@@ -161,23 +127,16 @@ class EasyMqtt : public MqttMap {
       #endif
     }
 
-    char* config(const char* key, const char* defaultValue) {
-      // return get("config")[key]->getValue(defaultValue);
-      return (char*)defaultValue;
-    }
-
-    int configInt(const char* key, int defaultValue) {
-      return defaultValue;
-    }
-
     /**
        Handle the normal loop
     */
     void loop() {
-      webServer->handleClient();
       mqttReconnect();
       mqttClient.loop();
-      MqttMap::loop();
+      webPortal.loop();
+      each([](MqttEntry* entry){
+          entry->loop();
+      });
     }
 };
 

@@ -1,27 +1,27 @@
 #ifndef EasyConfig_h
 #define EasyConfig_h
 
-#include "MqttMap.h"
+#include "MqttEntry.h"
 
-class EasyConfig : public MqttMap {
-  private:
-    char* value = NULL;
-
-
+class EasyConfig : public MqttEntry {
   public:
     EasyConfig(char* key, char* value) {
       >> [](String value){
-        // ToDo: Handle update of value based on mqtt
+        setValue(value);
         // ToDo: Call store();
       };
     }
 
     char* getValue(char* defaultValue) {
-      return defaultValue;
+      String value = getValue();
+      if(value == NULL) {
+        value = defaultValue;
+      }
+      return value;
     }
 
     String toString() {
-      return String(getName()) + "=" + getValue(NULL);
+      return String(getName()) + "=" + getValue();
     }
 
 
@@ -34,7 +34,7 @@ class EasyConfig : public MqttMap {
 
     void store() {
       // f.open
-      each([&](MqttMap* child) {
+      each([&](MqttEntry* child) {
         // f.println(child.toString().c_str());
         Serial.println(child.toString());
       });
