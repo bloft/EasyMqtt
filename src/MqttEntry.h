@@ -1,13 +1,14 @@
 #ifndef MqttEntry_h
 #define MqttEntry_h
 
+#include <functional>
 #include <Arduino.h>
 #include <PubSubClient.h>
 
 class MqttEntry {
   private:
-    void (*outFunction)(String payload) = NULL;
-    String (*inFunction)() = NULL;
+    std::function<void(String payload)> outFunction = NULL;
+    std::function<String()> inFunction = NULL;
 
     const char* name = "N/A";
     int interval = -1;
@@ -117,7 +118,7 @@ class MqttEntry {
     /**
      * Iterate over each child, including sub children
      */
-    void each(void (*f)(MqttEntry*)) {
+    void each(std::function<void(MqttEntry*)> f) {
       f(this);
       MqttEntry* child = children;
       while (child != NULL) {
@@ -153,14 +154,14 @@ class MqttEntry {
     /**
      *  Read data from function and send it to mqtt
      */
-    void operator<<(String (*inFunction)()) {
+    void operator<<(std::function<String()> inFunction) {
       MqttEntry::inFunction = inFunction;
     }
 
     /**
      *  Handle data comming from mqtt
      */
-    void operator>>(void (*outFunction)(String payload)) {
+    void operator>>(std::function<void(String payload)> outFunction) {
       MqttEntry::outFunction = outFunction;
     }
 };
