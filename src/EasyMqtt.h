@@ -5,7 +5,6 @@
 #include <PubSubClient.h>
 #include "MqttEntry.h"
 #include "WebPortal.h"
-#include "html.h"
 
 class EasyMqtt : public MqttEntry {
   private:

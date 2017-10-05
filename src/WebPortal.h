@@ -15,15 +15,20 @@ class WebPortal {
   }
 
 	void setup(EasyMqtt& mqtt) {
+      #ifdef DEBUG
+        Serial.println("Setup Web Portal");
+      #endif
       webServer.reset(new ESP8266WebServer(80));
       webServer->on("/", std::bind(&WebPortal::handleRoot, this));
-      /*
       mqtt->each([&](MqttEntry* entry) {
         String path = entry->getTopic();
         path.replace(mqtt->getTopic(), "");
+        #ifdef DEBUG
+          Serial.print("Rest: ");
+          Serial.println(path);
+        #endif
         webServer->on(path, std::bind(&WebPortal::handleRest, this));
       }
-      */
       webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
       webServer->begin();
       WebPortal::mqtt = &mqtt;
@@ -60,6 +65,7 @@ class WebPortal {
   }
 
   void handleRest() {
+    Serial.println(webServer->uri());
     if(webServer->method() == HTTP_GET) {
       webServer->send(200, "text/plain", "Unsupported");
     } else if(webServer->method() == HTTP_POST) {
