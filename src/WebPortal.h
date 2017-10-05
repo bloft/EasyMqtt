@@ -41,9 +41,18 @@ class WebPortal {
 	  // Sensors
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isIn()) {
+
+        String value = entry->getValue();
+        if(value == "on" || value == "open" || value == "true") {
+          value = FPSTR(HTML_VALUE_ON);
+        } else if (value == "off" || value == "closed" || value == "false") {
+          value = FPSTR(HTML_VALUE_OFF);
+        }
+        value.replace("{value}", entry->getValue());
+
         page += FPSTR(HTML_SENSOR);
         page.replace("{name}", entry->getTopic());
-        page.replace("{value}", entry->getValue());
+        page.replace("{value}", value);
         page.replace("{last_updated}", new String(entry->getLastUpdate() / 1000));
       }
     });
