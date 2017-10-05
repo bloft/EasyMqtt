@@ -3,18 +3,20 @@
 
 #include <ESP8266WebServer.h>
 #include "EasyMqtt.h"
+#include "MqttEntry.h"
 #include "html.h"
 
 class WebPortal {
   private:
-	std::unique_ptr<ESP8266WebServer> webServer;
-  EasyMqtt* mqtt;
+    std::unique_ptr<ESP8266WebServer> webServer;
+    MqttEntry* mqtt;
 
   public:
   WebPortal() {
   }
 
-	void setup(EasyMqtt& mqtt) {
+    void setup(MqttEntry& mqttEntry) {
+      mqtt = &mqttEntry;
       #ifdef DEBUG
         Serial.println("Setup Web Portal");
       #endif
@@ -27,11 +29,10 @@ class WebPortal {
           Serial.print("Rest: ");
           Serial.println(path);
         #endif
-        webServer->on(path, std::bind(&WebPortal::handleRest, this));
-      }
+        webServer->on(path.c_str(), std::bind(&WebPortal::handleRest, this));
+      });
       webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
       webServer->begin();
-      WebPortal::mqtt = &mqtt;
 	}
 
   void handleRoot() {
@@ -44,7 +45,7 @@ class WebPortal {
         page += FPSTR(HTML_SENSOR);
         page.replace("{name}", entry->getTopic());
         page.replace("{value}", entry->getValue());
-        page.replace("{last_updated}", new String(entry->getLastUpdate() / 1000));
+        page.replace("{last_updated}", String(entry->getLastUpdate() / 1000));
       }
     });
 
@@ -59,7 +60,7 @@ class WebPortal {
     });
 
     page += FPSTR(HTML_FOOTER);
-    page.replace("{device_id}", mqtt->getDeviceId());
+    //page.replace("{device_id}", mqtt->getDeviceId());
     page.replace("{topic}", mqtt->getTopic());
     webServer->send(200, "text/html", page);
   }
@@ -69,7 +70,7 @@ class WebPortal {
     if(webServer->method() == HTTP_GET) {
       webServer->send(200, "text/plain", "Unsupported");
     } else if(webServer->method() == HTTP_POST) {
-      Serial.println(webServer.arg("plain"));
+      Serial.println(webServer->arg("plain"));
       webServer->send(200, "text/plain", "Unsupported");
     } else {
       webServer->send(404, "text/plain", "Unsupported");

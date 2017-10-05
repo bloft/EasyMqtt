@@ -24,8 +24,7 @@ class EasyMqtt : public MqttEntry {
       while (!mqttClient.connected()) {
         if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
           debug("Connected to MQTT");
-          each([](MqttEntry* entry){
-            entry->subscribe();
+          each([&](MqttEntry* entry){
             if (entry->isOut()) {
               mqttClient.subscribe(entry->getTopic().c_str());
             }
