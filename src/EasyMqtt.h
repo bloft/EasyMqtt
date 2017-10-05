@@ -98,8 +98,6 @@ class EasyMqtt : public MqttEntry {
       Serial.println(ESP.getChipId());
       #endif
 
-      webPortal.setup(*this);
-
       // Setup wifi diag
       get("system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
@@ -110,6 +108,8 @@ class EasyMqtt : public MqttEntry {
       get("system")["wifi"]["ip"] << []() {
         return WiFi.localIP().toString();
       };
+
+      webPortal.setup(*this);
     }
 
     /**
