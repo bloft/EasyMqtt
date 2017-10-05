@@ -27,6 +27,9 @@ class EasyMqtt : public MqttEntry {
           debug("Connected to MQTT");
           each([](MqttEntry* entry){
             entry->subscribe();
+            if (entry->isOut()) {
+              mqttClient.subscribe(entry->getTopic().c_str());
+            }
           });
         } else {
           #ifdef DEBUG
@@ -64,6 +67,10 @@ class EasyMqtt : public MqttEntry {
 
     void debug(String key, String value) {
       debug(key + " = " + value);
+    }
+
+    String getDeviceId() {
+      return deviceId;
     }
     
     virtual String getTopic() {

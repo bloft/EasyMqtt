@@ -47,15 +47,6 @@ class MqttEntry {
     }
     
     /**
-      
-    */
-    void subscribe() {
-      if (isOut()) {
-        client->subscribe(getTopic().c_str());
-      }
-    }
-
-    /**
      * Request a updated value if needed
      */
     void update() {
@@ -110,6 +101,13 @@ class MqttEntry {
      */
     String getValue() {
       return lastValue;
+    }
+
+    /**
+     * 
+     */
+    long getLastUpdate() {
+      return lastUpdate;
     }
 
     /**
