@@ -136,8 +136,13 @@ class MqttEntry {
     /**
      * Create or get the sub topic with the name {name}
      */
-    MqttEntry & get(const char* name) {
-      return operator[](name);
+    MqttEntry & get(String name) {
+      int pos = name.indexOf('/');
+      if(pos < 0) {
+        return operator[](name.c_str());
+      } else {
+        return get(name.substring(0, pos)).get(name.substring(pos+1));
+      }
     }
 
     /**

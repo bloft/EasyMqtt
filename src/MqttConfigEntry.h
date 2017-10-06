@@ -14,7 +14,8 @@ class MqttConfigEntry : public MqttEntry {
     }
 
     String getKey() {
-      return getTopic();
+      String prefix = getRootEntry()->get("config")->getTopic();
+      return getTopic().replace(prefix, "").replace("/", ".");
     }
 
     String getValue(String defaultValue) {
@@ -25,11 +26,22 @@ class MqttConfigEntry : public MqttEntry {
       return value;
     }
 
-  private:
-    String toString() {
+  protected:
+    MqttEntry* getRootEntry() {
+      MqttEntry* root = NULL;
+      each([&](MqttEntry* entry) {
+        if(entry->isRoot()) {
+          root = entry;
+        }
+      });
+      return root;
+    }
+
+    virtual String toString() {
       return String(getName()) + "=" + getValue();
     }
 
+  private:
     static EasyConfig* load() {
       SPIFFS.begin();
       File f = SPIFFS.open("/config.cfg", "r");
@@ -39,6 +51,7 @@ class MqttConfigEntry : public MqttEntry {
           int pos = line.indexOf("=");
           String key = line.substring(0, pos);
           String value = line.substring(pos+1);
+          MqttEntry* entry = getRootEntry().get(key.replace(".", "/"));
           Serial.println(line);
         }
         f.close();
@@ -51,7 +64,7 @@ class MqttConfigEntry : public MqttEntry {
       SPIFFS.begin();
       File f = SPIFFS.open("/config.cfg", "w");
       if (f) {
-        each([&](MqttEntry* entry) {
+        getRootEntry()->each([&](MqttEntry* entry) {
           f.println(entry.toString().c_str());
         });
         f.close();

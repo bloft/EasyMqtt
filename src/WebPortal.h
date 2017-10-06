@@ -17,15 +17,6 @@ class WebPortal {
     return path;
   }
 
-  MqttEntry* getEntryByName(MqttEntry* entry, String name) {
-    int pos = name.indexOf('/');
-    if(pos < 0) {
-      return &entry->get(name.c_str());
-    } else {
-      return getEntryByName(&entry->get(name.substring(0, pos).c_str()), name.substring(pos+1));
-    }
-  }
-
   public:
     WebPortal() {
     }
@@ -87,7 +78,7 @@ class WebPortal {
   }
 
   void handleRest() {
-    MqttEntry* entry = getEntryByName(mqtt, webServer->uri().substring(1));
+    MqttEntry* entry = mqtt->get(webServer->uri().substring(1));
     if(webServer->method() == HTTP_GET && entry->isIn()) {
       webServer->send(200, "text/plain", entry->getValue());
     } else if(webServer->method() == HTTP_POST && entry->isOut()) {
