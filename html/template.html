@@ -10,6 +10,15 @@
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
   </head>
   <body>
+  <script type="application/javascript">
+    function sendValue(input) {
+      $.ajax({
+        url: input.dataset.url, method: "POST", data: $(input).closest("form").find("input").val()
+      }).complete(function (data, textStatus, jqXHR) {
+        alert(textStatus);
+      })
+    }
+  </script>
 		<div class="container">
       <h1>Device Info - {device_id}</h1>
 			<ul class="nav nav-tabs" role="tablist">
@@ -172,7 +181,9 @@
                       <div class="input-group">
                         <input type="text" class="form-control" placeholder="value">
                         <span class="input-group-btn">
-                          <button class="btn btn-default" type="button">Send</button>
+                          <button class="btn btn-default" type="button" data-url="{name}" onclick="sendValue(this);">
+                            Send
+                          </button>
                         </span>
                       </div>
                     </form>
@@ -254,6 +265,15 @@
                 <p>Device is using EasyMqtt version 0.0.1</p>
                 Device Id: {device_id}<br />
                 Topic: {topic}<br />
+                <hr />
+                Rest API:<br />
+                <ul>
+                  <li>http://192.168.1.72/door</li>
+                  <li>http://192.168.1.72/audio/mute</li>
+                  <li>http://192.168.1.72/model</li>
+                  <li>http://192.168.1.72/source</li>
+                  <li>http://192.168.1.72/lamp/mode</li>
+                </ul>
               </div>
             </div>
           </div>

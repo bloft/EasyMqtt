@@ -77,6 +77,10 @@ class MqttEntry {
       return outFunction != NULL;
     }
 
+    bool isRoot() {
+      return parent == NULL;
+    }
+
     virtual String getTopic() {
       if (parent) {
         return parent->getTopic() + "/" + name;

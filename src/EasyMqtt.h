@@ -24,8 +24,7 @@ class EasyMqtt : public MqttEntry {
       while (!mqttClient.connected()) {
         if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
           debug("Connected to MQTT");
-          each([](MqttEntry* entry){
-            entry->subscribe();
+          each([&](MqttEntry* entry){
             if (entry->isOut()) {
               mqttClient.subscribe(entry->getTopic().c_str());
             }
@@ -99,8 +98,6 @@ class EasyMqtt : public MqttEntry {
       Serial.println(ESP.getChipId());
       #endif
 
-      webPortal.setup(*this);
-
       // Setup wifi diag
       get("system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
@@ -111,6 +108,8 @@ class EasyMqtt : public MqttEntry {
       get("system")["wifi"]["ip"] << []() {
         return WiFi.localIP().toString();
       };
+
+      webPortal.setup(*this);
     }
 
     /**

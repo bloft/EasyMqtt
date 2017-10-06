@@ -3,35 +3,47 @@
 
 #include <ESP8266WebServer.h>
 #include "EasyMqtt.h"
+#include "MqttEntry.h"
 #include "html.h"
 
 class WebPortal {
   private:
-	std::unique_ptr<ESP8266WebServer> webServer;
-  EasyMqtt* mqtt;
+    std::unique_ptr<ESP8266WebServer> webServer;
+    MqttEntry* mqtt;
 
-  public:
-  WebPortal() {
+  String getName(MqttEntry* entry) {
+    String path = entry->getTopic();
+    path.replace(mqtt->getTopic(), "");
+    return path;
   }
 
-	void setup(EasyMqtt& mqtt) {
+  MqttEntry* getEntryByName(MqttEntry* entry, String name) {
+    int pos = name.indexOf('/');
+    if(pos < 0) {
+      return &entry->get(name.c_str());
+    } else {
+      return getEntryByName(&entry->get(name.substring(0, pos).c_str()), name.substring(pos+1));
+    }
+  }
+
+  public:
+    WebPortal() {
+    }
+
+    void setup(MqttEntry& mqttEntry) {
+      mqtt = &mqttEntry;
       #ifdef DEBUG
         Serial.println("Setup Web Portal");
       #endif
       webServer.reset(new ESP8266WebServer(80));
       webServer->on("/", std::bind(&WebPortal::handleRoot, this));
       mqtt->each([&](MqttEntry* entry) {
-        String path = entry->getTopic();
-        path.replace(mqtt->getTopic(), "");
-        #ifdef DEBUG
-          Serial.print("Rest: ");
-          Serial.println(path);
-        #endif
-        webServer->on(path, std::bind(&WebPortal::handleRest, this));
-      }
+        if(entry->isIn() || entry->isOut()) {
+          webServer->on(getName(entry).c_str(), std::bind(&WebPortal::handleRest, this));
+        }
+      });
       webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
       webServer->begin();
-      WebPortal::mqtt = &mqtt;
 	}
 
   void handleRoot() {
@@ -51,9 +63,9 @@ class WebPortal {
         value.replace("{value}", entry->getValue());
 
         page += FPSTR(HTML_SENSOR);
-        page.replace("{name}", entry->getTopic());
-        page.replace("{value}", value);
-        page.replace("{last_updated}", new String(entry->getLastUpdate() / 1000));
+        page.replace("{name}", getName(entry));
+        page.replace("{value}", entry->getValue());
+        page.replace("{last_updated}", String(entry->getLastUpdate() / 1000));
       }
     });
 
@@ -63,23 +75,23 @@ class WebPortal {
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isOut()) {
         page += FPSTR(HTML_INPUT);
-        page.replace("{name}", entry->getTopic());
+        page.replace("{name}", getName(entry));
       }
     });
 
     page += FPSTR(HTML_FOOTER);
-    page.replace("{device_id}", mqtt->getDeviceId());
+    //page.replace("{device_id}", mqtt->getDeviceId());
     page.replace("{topic}", mqtt->getTopic());
     webServer->send(200, "text/html", page);
   }
 
   void handleRest() {
-    Serial.println(webServer->uri());
-    if(webServer->method() == HTTP_GET) {
-      webServer->send(200, "text/plain", "Unsupported");
-    } else if(webServer->method() == HTTP_POST) {
-      Serial.println(webServer.arg("plain"));
-      webServer->send(200, "text/plain", "Unsupported");
+    MqttEntry* entry = getEntryByName(mqtt, webServer->uri().substring(1));
+    if(webServer->method() == HTTP_GET && entry->isIn()) {
+      webServer->send(200, "text/plain", entry->getValue());
+    } else if(webServer->method() == HTTP_POST && entry->isOut()) {
+      entry->update(webServer->arg("plain"));
+      webServer->send(200, "text/plain", webServer->uri() + " Update");
     } else {
       webServer->send(404, "text/plain", "Unsupported");
     }
