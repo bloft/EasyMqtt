@@ -54,17 +54,18 @@ class WebPortal {
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isIn()) {
 
-        String value = entry->getValue();
+        String value = entry->getValue().toLowerCase();
         if(value == "on" || value == "open" || value == "true") {
-          value = FPSTR(HTML_VALUE_ON);
+          value = FPSTR(HTML_VALUE_ON).replace("{value}", entry->getValue());
         } else if (value == "off" || value == "closed" || value == "false") {
-          value = FPSTR(HTML_VALUE_OFF);
+          value = FPSTR(HTML_VALUE_OFF).replace("{value}", entry->getValue());
+        } else {
+          value = entry->getValue());
         }
-        value.replace("{value}", entry->getValue());
 
         page += FPSTR(HTML_SENSOR);
         page.replace("{name}", getName(entry));
-        page.replace("{value}", entry->getValue());
+        page.replace("{value}", value);
         page.replace("{last_updated}", String(entry->getLastUpdate() / 1000));
       }
     });
