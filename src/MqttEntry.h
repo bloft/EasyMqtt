@@ -12,6 +12,7 @@ class MqttEntry {
 
     char* name = "N/A";
     int interval = -1;
+    int force = 0;
     unsigned long lastUpdate = 0; // Last read of data
     String lastValue = "";
 
@@ -61,8 +62,13 @@ class MqttEntry {
           lastUpdate = time;
           String value = inFunction();
           if (value != "") {
-            publish(value);
-            lastValue = value;
+            if(value != lastValue || force >= 10) {
+              publish(value);
+              lastValue = value;
+              force = 0;
+            } else {
+              force++;
+            }
           }
         }
       }
