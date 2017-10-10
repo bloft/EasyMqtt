@@ -47,8 +47,11 @@ class EasyMqtt : public MqttEntry {
       get("system")["uptime"] << []() {
         return String(millis() / 1000);
       };
-      get("system")["reset"] >> [](String value) {
-        ESP.reset();
+      get("system")["restart"] >> [this](String value) {
+        if(value == "restart") {
+          debug("Restart");
+          ESP.restart();
+        }
       };
     }
 

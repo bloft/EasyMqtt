@@ -6,7 +6,7 @@
 
 class MqttConfigEntry : public MqttEntry {
   public:
-    EasyConfig(char* key, char* value) {
+    MqttConfigEntry(char* key, char* value) {
       >> [](String value){
         setValue(value);
         // ToDo: Call store();
