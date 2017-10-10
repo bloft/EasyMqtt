@@ -48,7 +48,9 @@ class MqttEntry {
         for (int i = 0; i < length; i++) {
           _payload += (char)payload[i];
         }
-        update(_payload);
+        if(!isIn() || _payload != lastValue) {
+          update(_payload);
+        }
       }
     }
     
