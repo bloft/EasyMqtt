@@ -10,7 +10,7 @@ class MqttEntry {
     std::function<void(String payload)> outFunction = NULL;
     std::function<String()> inFunction = NULL;
 
-    const char* name = "N/A";
+    char* name = "N/A";
     int interval = -1;
     unsigned long lastUpdate = 0; // Last read of data
     String lastValue = "";
@@ -23,14 +23,16 @@ class MqttEntry {
 
   protected:
     MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent) {
-      MqttEntry::name = name;
+      MqttEntry::name = (char*)malloc(strlen(name)+1);
+      strncpy(MqttEntry::name, name, sizeof(name));
       MqttEntry::parent = &parent;
       client = &mqttClient;
       interval = -1;
     }
 
     MqttEntry(const char* name, PubSubClient& mqttClient) {
-      MqttEntry::name = name;
+      MqttEntry::name = (char*)malloc(strlen(name)+1);
+      strncpy(MqttEntry::name, name, sizeof(name));
       client = &mqttClient;
       interval = 5;
     }
