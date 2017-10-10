@@ -77,7 +77,7 @@ class WebPortal {
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isOut() || entry->isIn()) {
         page += FPSTR(HTML_REST_DOC);
-        page.replace("path", getName(entry));
+        page.replace("{path}", getName(entry));
       }
     });
     page += FPSTR(HTML_FOOTER2);

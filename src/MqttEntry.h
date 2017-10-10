@@ -21,20 +21,23 @@ class MqttEntry {
     MqttEntry* next = NULL;
     MqttEntry* children = NULL;
 
+    void setName(const char* name) {
+      MqttEntry::name = (char*)malloc(strlen(name)+1);
+      strncpy(MqttEntry::name, name, strlen(name)+1);
+    }
+
   protected:
     MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent) {
-      MqttEntry::name = (char*)malloc(strlen(name)+1);
-      strncpy(MqttEntry::name, name, sizeof(name));
       MqttEntry::parent = &parent;
       client = &mqttClient;
       interval = -1;
+      setName(name);
     }
 
     MqttEntry(const char* name, PubSubClient& mqttClient) {
-      MqttEntry::name = (char*)malloc(strlen(name)+1);
-      strncpy(MqttEntry::name, name, sizeof(name));
       client = &mqttClient;
       interval = 5;
+      setName(name);
     }
   
   public:
