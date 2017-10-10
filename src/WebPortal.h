@@ -45,14 +45,16 @@ class WebPortal {
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isIn()) {
 
-        String value = entry->getValue().toLowerCase();
+        String value = entry->getValue();
+        value.toLowerCase();
         if(value == "on" || value == "open" || value == "true") {
-          value = FPSTR(HTML_VALUE_ON).replace("{value}", entry->getValue());
+          value = FPSTR(HTML_VALUE_ON);
         } else if (value == "off" || value == "closed" || value == "false") {
-          value = FPSTR(HTML_VALUE_OFF).replace("{value}", entry->getValue());
+          value = FPSTR(HTML_VALUE_OFF);
         } else {
-          value = entry->getValue());
+          value = entry->getValue();
         }
+        value.replace("{value}", entry->getValue());
 
         page += FPSTR(HTML_SENSOR);
         page.replace("{name}", getName(entry));
@@ -74,7 +76,8 @@ class WebPortal {
     page += FPSTR(HTML_FOOTER1);
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isOut() || entry->isIn()) {
-        page += FPSTR(HTML_REST_DOC).replace("path", getName(entry));
+        page += FPSTR(HTML_REST_DOC);
+        page.replace("path", getName(entry));
       }
     });
     page += FPSTR(HTML_FOOTER2);
@@ -84,7 +87,7 @@ class WebPortal {
   }
 
   void handleRest() {
-    MqttEntry* entry = mqtt->get(webServer->uri().substring(1));
+    MqttEntry* entry = &mqtt->get(webServer->uri().substring(1));
     if(webServer->method() == HTTP_GET && entry->isIn()) {
       webServer->send(200, "text/plain", entry->getValue());
     } else if(webServer->method() == HTTP_POST && entry->isOut()) {

@@ -169,12 +169,6 @@ class MqttEntry {
       MqttEntry::inFunction = inFunction;
     }
 
-    void operator<<(std::function<long> inFunction) {
-      MqttEntry::inFunction = [&](){
-        return String(inFunction());
-      }
-    }
-
     /**
      *  Handle data comming from mqtt
      */
