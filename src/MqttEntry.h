@@ -11,8 +11,9 @@ class MqttEntry {
     std::function<String()> inFunction = NULL;
 
     char* name = "N/A";
-    int interval = -1;
     int force = 0;
+    int interval = -1;
+    int forceUpdate = -1;
     unsigned long lastUpdate = 0; // Last read of data
     String lastValue = "";
 
@@ -29,16 +30,28 @@ class MqttEntry {
 
   protected:
     MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent) {
-      MqttEntry::parent = &parent;
+      setParent(parent);
       client = &mqttClient;
-      interval = -1;
       setName(name);
     }
 
     MqttEntry(const char* name, PubSubClient& mqttClient) {
-      client = &mqttClient;
       interval = 5;
+      forceUpdate = 10;
+      client = &mqttClient;
       setName(name);
+    }
+
+    void setParent(MqttEntry& parent) {
+      MqttEntry::parent = &parent;
+    }
+
+    MqttEntry* addChild(MqttEntry* child) {
+      child->setParent(*this);
+      MqttEntry * oldChild = children;
+      children = child;
+      children->next = oldChild;
+      return child;
     }
   
   public:
@@ -61,15 +74,13 @@ class MqttEntry {
       if (isIn()) {
         unsigned long time = millis();
         if (time >= (lastUpdate + (getInterval() * 1000))) {
+          force++;
           lastUpdate = time;
           String value = inFunction();
           if (value != "") {
-            if(value != lastValue || force >= 10) {
-              publish(value);
-              lastValue = value;
+            if (value != lastValue || force > getForce()) {
+              setValue(value);
               force = 0;
-            } else {
-              force++;
             }
           }
         }
@@ -113,11 +124,27 @@ class MqttEntry {
       MqttEntry::interval = interval;
     }
 
+    int getForce() {
+      if(forceUpdate < 0) {
+        return parent->getForce();
+      }
+      return forceUpdate;
+    }
+
+    void setForce(int force) {
+      forceUpdate = force;
+    }
+
     /**
      * Get last value
      */
     String getValue() {
       return lastValue;
+    }
+
+    void setValue(String value) {
+      lastValue = value;
+      publish(value);
     }
 
     /**
@@ -169,10 +196,7 @@ class MqttEntry {
         }
         child = child->next;
       }
-      MqttEntry * oldChild = children;
-      children = new MqttEntry(name, *client, *this);
-      children->next = oldChild;
-      return *children;
+      return *addChild(new MqttEntry(name, *client, *this));
     }
 
     /**

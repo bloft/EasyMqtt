@@ -5,12 +5,15 @@
 #include <PubSubClient.h>
 #include "MqttEntry.h"
 #include "WebPortal.h"
+#include "ConfigEntry.h"
 
 class EasyMqtt : public MqttEntry {
   private:
     WiFiClient wifiClient;
     PubSubClient mqttClient;
     WebPortal webPortal;
+
+    ConfigEntry* config;
 
     String deviceId = "deviceId";
     const char* mqtt_username = "N/A";
@@ -40,6 +43,9 @@ class EasyMqtt : public MqttEntry {
     EasyMqtt() : MqttEntry("easyMqtt", mqttClient) {
       deviceId = String(ESP.getChipId());
 
+      config = new ConfigEntry(mqttClient, *this);
+      addChild(config);
+
       get("system").setInterval(30);
       get("system")["mem"]["heap"] << []() {
         return String(ESP.getFreeHeap());
@@ -53,6 +59,10 @@ class EasyMqtt : public MqttEntry {
           ESP.restart();
         }
       };
+    }
+
+    ConfigEntry* getConfig() {
+      return config;
     }
 
     void debug(String msg) {
