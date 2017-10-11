@@ -16,10 +16,14 @@ class ConfigEntry : public MqttEntry {
       return get(key).getValue();
     }
 
+    void reset() {
+      SPIFFS.remove("/config.cfg");
+    }
+
   protected:
     String getKey(MqttEntry* entry) {
       String key = entry->getTopic();
-      key.replace(getTopic(), "");
+      key.replace(getTopic() + "/", "");
       key.replace("/", ".");
       return key;
     }
@@ -45,12 +49,17 @@ class ConfigEntry : public MqttEntry {
     }
 
     void store() {
+      Serial.println("store");
       File f = SPIFFS.open("/config.cfg", "w");
       if (f) {
         each([&](MqttEntry* entry) {
-          f.println(toString(entry).c_str());
+          if(entry->getTopic() != getTopic()) {
+            f.println(toString(entry).c_str());
+          }
         });
         f.close();
+      } else {
+        Serial.println("Failed to store config");
       }
     }
 };

@@ -7,8 +7,9 @@
 
 class MqttEntry {
   private:
-    std::function<void(String payload)> outFunction = NULL;
+    std::function<void(String)> outFunction = NULL;
     std::function<String()> inFunction = NULL;
+    std::function<void(MqttEntry*, String)> publishFunction = NULL;
 
     char* name = "N/A";
     int force = 0;

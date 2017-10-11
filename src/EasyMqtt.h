@@ -24,6 +24,7 @@ class EasyMqtt : public MqttEntry {
        Handle connections to mqtt
     */
     void mqttReconnect() {
+     // if(WiFi.status() != WL_CONNECTED) {
       while (!mqttClient.connected()) {
         if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
           debug("Connected to MQTT");
@@ -41,12 +42,17 @@ class EasyMqtt : public MqttEntry {
 
   public:
     EasyMqtt() : MqttEntry("easyMqtt", mqttClient) {
+      Serial.begin(115200);
       deviceId = String(ESP.getChipId());
 
+      debug("test");
       config = new ConfigEntry(mqttClient, *this);
       addChild(config);
 
       get("system").setInterval(30);
+      get("system")["deviceId"] << [this]() {
+        return deviceId;
+      };
       get("system")["mem"]["heap"] << []() {
         return String(ESP.getFreeHeap());
       };
@@ -57,6 +63,11 @@ class EasyMqtt : public MqttEntry {
         if(value == "restart") {
           debug("Restart");
           ESP.restart();
+        }
+      };
+      get("system")["config"]["reset"] >> [this](String value) {
+        if(value == "reset") {
+          getConfig()->reset();
         }
       };
     }
