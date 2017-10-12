@@ -15,6 +15,19 @@ class ConfigEntry : public MqttEntry {
       key.replace(".", "/");
       return get(key).getValue();
     }
+    
+    const char* getCString(String key, String defaultValue) {
+      return getString(key, defaultValue).c_str();
+    }
+
+    int getInt(String key, int defaultValue) {
+      return getString(key, String(defaultValue)).toInt();
+    }
+
+    void set(String key, String value) {
+      key.replace(".", "/");
+      get(key).setValue(value);
+    }
 
     void reset() {
       SPIFFS.remove("/config.cfg");

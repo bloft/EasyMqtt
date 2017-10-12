@@ -13,21 +13,55 @@ class EasyMqtt : public MqttEntry {
     PubSubClient mqttClient;
     WebPortal webPortal;
 
-    ConfigEntry* config;
+    ConfigEntry* configEntry;
 
     String deviceId = "deviceId";
-    const char* mqtt_username = "N/A";
-    const char* mqtt_password = "N/A";
 
   protected:
     /**
        Handle connections to mqtt
     */
-    void mqttReconnect() {
-     // if(WiFi.status() != WL_CONNECTED) {
-      while (!mqttClient.connected()) {
-        if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
+    void connect() {
+      if(WiFi.status() != WL_CONNECTED) {
+        const char* ssid = config().getCString("wifi.ssid", "");
+        const char* password = config().getCString("wifi.password", "");
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(ssid, password);
+
+        int timer = 0;
+        while (WiFi.status() != WL_CONNECTED && timer < 10) {
+          delay(500);
+          timer++;
+          // ToDo: handle timeout, and create AP
+        }
+        if(timer < 10) {
+          debug("WiFi connected");
+        } else {
+          debug("WiFi connection timeout");
+          // ToDo: create AP
+        }
+        debug("IP address", WiFi.localIP().toString());
+        debug("devideId", deviceId);
+        webPortal.setup(*this);
+      }
+      if(mqttClient.state() == MQTT_DISCONNECTED) {
+        // Setup MQTT
+        const char* host = config().getCString("mqtt.host", "");
+        int port = config().getInt("mqtt.port", 1883);
+        mqttClient.setClient(wifiClient);
+        mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
+          each([=](MqttEntry* entry){
+            entry->callback(topic, payload, length);
+          });
+        });
+        mqttClient.setServer(host, port);
+      }
+      if (!mqttClient.connected()) {
+        const char* username = config().getCString("mqtt.username", "");
+        const char* password = config().getCString("mqtt.password", "");
+        if (mqttClient.connect(deviceId.c_str(), username, password)) {
           debug("Connected to MQTT");
+          debug("Topic", getTopic()); 
           each([&](MqttEntry* entry){
             if (entry->isOut()) {
               mqttClient.subscribe(entry->getTopic().c_str());
@@ -42,12 +76,11 @@ class EasyMqtt : public MqttEntry {
 
   public:
     EasyMqtt() : MqttEntry("easyMqtt", mqttClient) {
-      Serial.begin(115200);
       deviceId = String(ESP.getChipId());
 
       debug("test");
-      config = new ConfigEntry(mqttClient, *this);
-      addChild(config);
+      configEntry = new ConfigEntry(mqttClient, *this);
+      addChild(configEntry);
 
       get("system").setInterval(30);
       get("system")["deviceId"] << [this]() {
@@ -59,6 +92,18 @@ class EasyMqtt : public MqttEntry {
       get("system")["uptime"] << []() {
         return String(millis() / 1000);
       };
+
+      // Setup wifi diag
+      get("system")["wifi"]["rssi"] << []() {
+        return String(WiFi.RSSI());
+      };
+      get("system")["wifi"]["ssid"] << []() {
+        return WiFi.SSID();
+      };
+      get("system")["wifi"]["ip"] << []() {
+        return WiFi.localIP().toString();
+      };
+
       get("system")["restart"] >> [this](String value) {
         if(value == "restart") {
           debug("Restart");
@@ -67,13 +112,13 @@ class EasyMqtt : public MqttEntry {
       };
       get("system")["config"]["reset"] >> [this](String value) {
         if(value == "reset") {
-          getConfig()->reset();
+          config().reset();
         }
       };
     }
 
-    ConfigEntry* getConfig() {
-      return config;
+    ConfigEntry & config() {
+      return *configEntry;
     }
 
     void debug(String msg) {
@@ -101,53 +146,25 @@ class EasyMqtt : public MqttEntry {
        Setup connection to wifi
     */
     void wifi(const char* ssid, const char* password) {
-      WiFi.mode(WIFI_STA);
-      WiFi.begin(ssid, password);
-
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        // ToDo: handle timeout, and create AP
-      }
-      debug("WiFi connected");
-      debug("IP address", WiFi.localIP().toString());
-      debug("devideId", deviceId);
-
-      // Setup wifi diag
-      get("system")["wifi"]["rssi"] << []() {
-        return String(WiFi.RSSI());
-      };
-      get("system")["wifi"]["ssid"] << []() {
-        return WiFi.SSID();
-      };
-      get("system")["wifi"]["ip"] << []() {
-        return WiFi.localIP().toString();
-      };
-
-      webPortal.setup(*this);
+      config().set("wifi.ssid", ssid);
+      config().set("wifi.password", password);
     }
 
     /**
        Setup connection to mqtt
     */
     void mqtt(const char* host, int port, const char* username, const char* password) {
-      mqttClient.setClient(wifiClient);
-      mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
-        each([=](MqttEntry* entry){
-          entry->callback(topic, payload, length);
-        });
-      });
-      mqttClient.setServer(host, port);
-      mqtt_username = username;
-      mqtt_password = password;
-     
-      debug("Topic", getTopic()); 
+      config().set("mqtt.host", host);
+      config().set("mqtt.port", String(port));
+      config().set("mqtt.username", username);
+      config().set("mqtt.password", password);
     }
 
     /**
        Handle the normal loop
     */
     void loop() {
-      mqttReconnect();
+      connect();
       mqttClient.loop();
       webPortal.loop();
       each([](MqttEntry* entry){
