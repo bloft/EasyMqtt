@@ -54,8 +54,7 @@ class ConfigEntry : public MqttEntry {
           int pos = line.indexOf("=");
           String key = line.substring(0, pos);
           String value = line.substring(pos+1);
-          key.replace(".", "/");
-          get(key).setValue(value);
+          set(key, value);
         }
         f.close();
       }

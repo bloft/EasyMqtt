@@ -74,7 +74,7 @@ class MqttEntry {
     void update() {
       if (isIn()) {
         unsigned long time = millis();
-        if (time >= (lastUpdate + (getInterval() * 1000))) {
+        if (time >= (lastUpdate + (getInterval() * 1000)) || lastUpdate == 0) {
           force++;
           lastUpdate = time;
           String value = inFunction();

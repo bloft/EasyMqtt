@@ -23,13 +23,14 @@ class EasyMqtt : public MqttEntry {
     */
     void connect() {
       if(WiFi.status() != WL_CONNECTED) {
-        const char* ssid = config().getCString("wifi.ssid", "");
-        const char* password = config().getCString("wifi.password", "");
+        String ssid = config().getString("wifi.ssid", "");
+        String password = config().getString("wifi.password", "");
+        debug("Connecting to wifi: " + ssid);
         WiFi.mode(WIFI_STA);
-        WiFi.begin(ssid, password);
+        WiFi.begin(ssid.c_str(), password.c_str());
 
         int timer = 0;
-        while (WiFi.status() != WL_CONNECTED && timer < 10) {
+        while ((WiFi.status() != WL_CONNECTED) && timer < 10) {
           delay(500);
           timer++;
           // ToDo: handle timeout, and create AP
@@ -44,22 +45,23 @@ class EasyMqtt : public MqttEntry {
         debug("devideId", deviceId);
         webPortal.setup(*this);
       }
+      String host = config().getString("mqtt.host", "");
+      int port = config().getInt("mqtt.port", 1883);
       if(mqttClient.state() == MQTT_DISCONNECTED) {
         // Setup MQTT
-        const char* host = config().getCString("mqtt.host", "");
-        int port = config().getInt("mqtt.port", 1883);
         mqttClient.setClient(wifiClient);
         mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
           each([=](MqttEntry* entry){
             entry->callback(topic, payload, length);
           });
         });
-        mqttClient.setServer(host, port);
+        mqttClient.setServer(host.c_str(), port);
       }
       if (!mqttClient.connected()) {
-        const char* username = config().getCString("mqtt.username", "");
-        const char* password = config().getCString("mqtt.password", "");
-        if (mqttClient.connect(deviceId.c_str(), username, password)) {
+        String username = config().getString("mqtt.username", "");
+        String password = config().getString("mqtt.password", "");
+        debug("Connecting to MQTT: " + host + " on port " + String(port));
+        if (mqttClient.connect(deviceId.c_str(), username.c_str(), password.c_str())) {
           debug("Connected to MQTT");
           debug("Topic", getTopic()); 
           each([&](MqttEntry* entry){
@@ -68,8 +70,8 @@ class EasyMqtt : public MqttEntry {
             }
           });
         } else {
-          debug("failed, rc", String(mqttClient.state()));
-          delay(5000);
+          debug("Connection to MQTT failed, rc", String(mqttClient.state()));
+          delay(500);
         }
       }
     }
