@@ -9,6 +9,9 @@ class ConfigEntry : public MqttEntry {
     ConfigEntry(PubSubClient& mqttClient, MqttEntry& parent) : MqttEntry("config", mqttClient, parent) {
       SPIFFS.begin();
       load();
+      setPublishFunction([this](MqttEntry* entry, String message){
+        store();
+      });
     }
 
     String getString(String key, String defaultValue) {
@@ -61,7 +64,6 @@ class ConfigEntry : public MqttEntry {
     }
 
     void store() {
-      Serial.println("store");
       File f = SPIFFS.open("/config.cfg", "w");
       if (f) {
         each([&](MqttEntry* entry) {

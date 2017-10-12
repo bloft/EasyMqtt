@@ -63,6 +63,11 @@ class EasyMqtt : public MqttEntry {
         debug("Connecting to MQTT: " + host + " on port " + String(port));
         if (mqttClient.connect(deviceId.c_str(), username.c_str(), password.c_str())) {
           debug("Connected to MQTT");
+    
+          setPublishFunction([&](MqttEntry* entry, String message){
+            mqttClient.publish(entry->getTopic().c_str(), message.c_str());
+          });
+
           debug("Topic", getTopic()); 
           each([&](MqttEntry* entry){
             if (entry->isOut()) {

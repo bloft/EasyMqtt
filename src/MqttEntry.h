@@ -28,6 +28,13 @@ class MqttEntry {
       MqttEntry::name = (char*)malloc(strlen(name)+1);
       strncpy(MqttEntry::name, name, strlen(name)+1);
     }
+    
+    std::function<void(MqttEntry*, String)> getPublishFunction() {
+      if(publishFunction == NULL && parent) {
+        return parent->getPublishFunction();
+      }
+      return publishFunction;
+    }
 
   protected:
     MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent) {
@@ -53,6 +60,10 @@ class MqttEntry {
       children = child;
       children->next = oldChild;
       return child;
+    }
+
+    void setPublishFunction(std::function<void(MqttEntry*, String)> function) {
+      publishFunction = function;
     }
   
   public:
@@ -159,7 +170,10 @@ class MqttEntry {
      * Publish value to mqtt
      */
     void publish(String message) {
-      client->publish(getTopic().c_str(), message.c_str());
+      auto function = getPublishFunction();
+      if(function) {
+        getPublishFunction()(this,message);
+      }
     }
     
     /**
