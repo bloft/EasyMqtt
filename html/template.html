@@ -1,4 +1,4 @@
-<!-- split:header -->
+<!-- split:main1 -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -16,8 +16,16 @@
         url: input.dataset.url, method: "POST", data: $(input).closest("form").find("input").val()
       }).complete(function (data, textStatus, jqXHR) {
         alert(textStatus);
-      })
+      });
     }
+    setInterval(function() {
+      $("[data-ajaxurl]").each(function(index) {
+        var ele = $(this);
+        $.ajax(ele.data("ajaxurl")).complete(function (data, textStatus, jqXHR) {
+          ele.html(data);
+        });
+      });
+    }, 1000);
   </script>
 		<div class="container">
       <h1>Device Info - {device_id}</h1>
@@ -40,16 +48,15 @@
           <br />
           <div class="container-fluid">
   		      <div class="row">
-<!-- split:header -->
+<!-- split:main1 -->
 
 <!-- split:sensor -->
 	    	      <div class="col-md-4">
                 <div class="panel panel-info">
                   <div class="panel-heading"><strong>{name}</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">
+                  <div class="panel-body" data-ajaxurl="{name}" style="font-size: 24px;">
                     {value}
                   </div>
-                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> {last_updated}</div> 
                 </div>
               </div>
 <!-- split:sensor -->
@@ -67,6 +74,7 @@
 <!-- split:value_off -->
                   </div>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> {last_updated}</div> 
                 </div>
               </div>
 
@@ -160,7 +168,7 @@
                 </div>
               </div>
 
-<!-- split:input_panel -->
+<!-- split:main2 -->
            </div>
           </div>
 				</div>
@@ -169,7 +177,7 @@
           <br />
           <div class="container-fluid">
   		      <div class="row">
-<!-- split:input_panel -->
+<!-- split:main2 -->
 
               <!-- Input data -->
 <!-- split:input -->
@@ -192,27 +200,29 @@
               </div>
 <!-- split:input -->
 
-<!-- split:footer1 -->
+<!-- split:main3 -->
            </div>
           </div>
 				</div>
 
 				<div role="tabpanel" class="tab-pane" id="config">
-          <br />
           <div class="container-fluid">
   		      <div class="row">
 	  		      <div class="col-md-12">
-								<div class="alert alert-warning" role="alert">
-									<strong>Warning!</strong> Not connected to WiFi
-								</div>
-              	<form class="form-horizontal">
-									<h3>WiFi</h3><hr/>
+                <form class="form-horizontal" action="/save" method="POST">
+<!-- split:main3 -->
+<!-- split:config_header -->
+                  <br />
+                  <h3>{title}</h3><hr/>
+<!-- split:config_header -->
+<!-- split:config_entry -->
 									<div class="form-group">
-    								<label for="inputEmail3" class="col-sm-2 control-label">Email</label>
+                    <label for="{key}" class="col-sm-2 control-label">{key}</label>
     								<div class="col-sm-8">
-      								<input type="email" class="form-control" id="inputEmail3" placeholder="Rssd">
+                      <input type="{type}" class="form-control" id="{key}" placeholder="" value="{value}">
     								</div>
 								  </div>
+<!-- split:config_entry -->
 									<div class="form-group">
     								<label for="inputEmail3" class="col-sm-2 control-label">Password</label>
     								<div class="col-sm-8">
@@ -245,6 +255,7 @@
     								</div>
 								  </div>
 -->
+<!-- split:main4 -->
 									<hr/>
 									<div class="form-group">
     								<div class="col-sm-offset-9 col-sm-2">
@@ -268,7 +279,7 @@
                 <hr />
                 Rest API:<br />
                 <ul>
-<!-- split:footer1 -->
+<!-- split:main4 -->
 <!-- split:rest_doc -->
                   <li>{path}</li>
 <!-- split:rest_doc -->
@@ -276,7 +287,7 @@
                   <li>http://192.168.1.72/model</li>
                   <li>http://192.168.1.72/source</li>
                   <li>http://192.168.1.72/lamp/mode</li>
-<!-- split:footer2 -->
+<!-- split:main5 -->
                 </ul>
               </div>
             </div>
@@ -290,4 +301,4 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   </body>
 </html>
-<!-- split:footer2 -->
+<!-- split:main5 -->

@@ -23,11 +23,9 @@ class EasyMqtt : public MqttEntry {
     */
     void connect() {
       if(WiFi.status() != WL_CONNECTED) {
-        String ssid = config().getString("wifi.ssid", "");
-        String password = config().getString("wifi.password", "");
-        debug("Connecting to wifi: " + ssid);
+        debug("Connecting to wifi: " + config().getString("wifi.ssid", ""));
         WiFi.mode(WIFI_STA);
-        WiFi.begin(ssid.c_str(), password.c_str());
+        WiFi.begin(config().getCString("wifi.ssid", ""), config().getCString("wifi.password", ""));
 
         int timer = 0;
         while ((WiFi.status() != WL_CONNECTED) && timer < 10) {
@@ -38,15 +36,15 @@ class EasyMqtt : public MqttEntry {
         if(timer < 10) {
           debug("WiFi connected");
         } else {
-          debug("WiFi connection timeout");
+          debug("WiFi connection timeout - Setup AP");
           // ToDo: create AP
+          WiFi.mode(WIFI_AP);
+          WiFi.softAP(config().getCString("wifi.ap", "EasyMqtt"), "123456");
         }
         debug("IP address", WiFi.localIP().toString());
         debug("devideId", deviceId);
         webPortal.setup(*this);
       }
-      String host = config().getString("mqtt.host", "");
-      int port = config().getInt("mqtt.port", 1883);
       if(mqttClient.state() == MQTT_DISCONNECTED) {
         // Setup MQTT
         mqttClient.setClient(wifiClient);
@@ -55,13 +53,11 @@ class EasyMqtt : public MqttEntry {
             entry->callback(topic, payload, length);
           });
         });
-        mqttClient.setServer(host.c_str(), port);
+        mqttClient.setServer(config().getCString("mqtt.host", ""), config().getInt("mqtt.port", 1883));
       }
       if (!mqttClient.connected()) {
-        String username = config().getString("mqtt.username", "");
-        String password = config().getString("mqtt.password", "");
-        debug("Connecting to MQTT: " + host + " on port " + String(port));
-        if (mqttClient.connect(deviceId.c_str(), username.c_str(), password.c_str())) {
+        debug("Connecting to MQTT");
+        if (mqttClient.connect(deviceId.c_str(), config().getCString("mqtt.username", ""), config().getCString("mqtt.password", ""))) {
           debug("Connected to MQTT");
     
           setPublishFunction([&](MqttEntry* entry, String message){

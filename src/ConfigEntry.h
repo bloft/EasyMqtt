@@ -16,11 +16,22 @@ class ConfigEntry : public MqttEntry {
 
     String getString(String key, String defaultValue) {
       key.replace(".", "/");
-      return get(key).getValue();
+      String value = get(key).getValue();
+      if(value == "") {
+        return defaultValue;
+      } else {
+        return value;
+      }
     }
     
-    const char* getCString(String key, String defaultValue) {
-      return getString(key, defaultValue).c_str();
+    char* getCString(String key, String defaultValue) {
+      String value = getString(key, defaultValue);
+      char cValue[value.length() + 1];
+      memset(cValue, 0, value.length() + 1);
+      for(int i=0; i < value.length(); i++) {
+        cValue[i] = value.charAt(i);
+      }
+      return cValue;
     }
 
     int getInt(String key, int defaultValue) {
