@@ -73,7 +73,6 @@
                     <span class="label label-danger">{value}</span>
 <!-- split:value_off -->
                   </div>
-                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> {last_updated}</div> 
                 </div>
               </div>
@@ -273,21 +272,51 @@
           <div class="container-fluid">
   		      <div class="row">
 	  		      <div class="col-md-12">
+                <h1>About</h1>
                 <p>Device is using EasyMqtt version 0.0.1</p>
-                Device Id: {device_id}<br />
-                Topic: {topic}<br />
+                <dl class="dl-horizontal">
+                  <dt>Device Id</dt><dd>{device_id}</dd>
+                  <dt>Topic</dt><dd>{topic}</dd>
+                </dl>
                 <hr />
-                Rest API:<br />
-                <ul>
+                <h3>MQTT API:</h3>
+                <ul class="list-group">
 <!-- split:main4 -->
-<!-- split:rest_doc -->
-                  <li>{path}</li>
-<!-- split:rest_doc -->
-                  <li>http://192.168.1.72/audio/mute</li>
-                  <li>http://192.168.1.72/model</li>
-                  <li>http://192.168.1.72/source</li>
-                  <li>http://192.168.1.72/lamp/mode</li>
+                  <li class="list-group-item">
+                    {path}
+                    <span class="badge">Set</span>
+                    <span class="badge">Get</span>
+                  </li>
+                  <li class="list-group-item">
+                    EasyMqtt/123456/model
+                    <span class="badge">Get</span>
+                  </li>
 <!-- split:main5 -->
+                </ul>
+                <hr />
+                <h3>Rest API:</h3>
+                <ul class="list-group">
+<!-- split:main5 -->
+<!-- split:api_doc -->
+                  <li class="list-group-item">
+                    {path}
+                  </li>
+<!-- split:api_doc -->
+                  <li class="list-group-item">
+                    http://192.168.1.72/model
+                    <span class="badge">GET</span>
+                  </li>
+                  <li class="list-group-item">
+                    http://192.168.1.72/source
+                    <span class="badge">GET</span>
+                    <span class="badge">POST</span>
+                  </li>
+                  <li class="list-group-item">
+                    http://192.168.1.72/lamp/mode
+                    <span class="badge">GET</span>
+                    <span class="badge">POST</span>
+                  </li>
+<!-- split:main6 -->
                 </ul>
               </div>
             </div>
@@ -301,4 +330,4 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   </body>
 </html>
-<!-- split:main5 -->
+<!-- split:main6 -->

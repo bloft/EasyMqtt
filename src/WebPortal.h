@@ -92,11 +92,19 @@ class WebPortal {
     page += FPSTR(HTML_MAIN4);
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isOut() || entry->isIn()) {
-        page += FPSTR(HTML_REST_DOC);
+        page += FPSTR(HTML_API_DOC);
+        page.replace("{path}", entry->getTopic());
+      }
+    });
+
+    page += FPSTR(HTML_MAIN5);
+    mqtt->each([&](MqttEntry* entry) {
+      if(entry->isOut() || entry->isIn()) {
+        page += FPSTR(HTML_API_DOC);
         page.replace("{path}", getName(entry));
       }
     });
-    page += FPSTR(HTML_MAIN5);
+    page += FPSTR(HTML_MAIN6);
     // About
     page.replace("{device_id}", mqtt->get("system/deviceId").getValue());
     page.replace("{topic}", mqtt->getTopic());
