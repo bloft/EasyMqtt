@@ -24,14 +24,8 @@ class ConfigEntry : public MqttEntry {
       }
     }
     
-    char* getCString(String key, String defaultValue) {
-      String value = getString(key, defaultValue);
-      char cValue[value.length() + 1];
-      memset(cValue, 0, value.length() + 1);
-      for(int i=0; i < value.length(); i++) {
-        cValue[i] = value.charAt(i);
-      }
-      return cValue;
+    const char* getCString(String key, String defaultValue) {
+      return getString(key, defaultValue).c_str();
     }
 
     int getInt(String key, int defaultValue) {
@@ -55,10 +49,6 @@ class ConfigEntry : public MqttEntry {
       return key;
     }
 
-    String toString(MqttEntry* entry) {
-      return getKey(entry) + "=" + entry->getValue();
-    }
-    
   private:
     void load() {
       File f = SPIFFS.open("/config.cfg", "r");
@@ -67,7 +57,7 @@ class ConfigEntry : public MqttEntry {
           String line = f.readStringUntil('\n');
           int pos = line.indexOf("=");
           String key = line.substring(0, pos);
-          String value = line.substring(pos+1);
+          String value = line.substring(pos+1, line.length()-1);
           set(key, value);
         }
         f.close();
@@ -79,7 +69,9 @@ class ConfigEntry : public MqttEntry {
       if (f) {
         each([&](MqttEntry* entry) {
           if(entry->getTopic() != getTopic()) {
-            f.println(toString(entry).c_str());
+            f.print(getKey(entry));
+            f.print("=");
+            f.println(entry->getValue());
           }
         });
         f.close();

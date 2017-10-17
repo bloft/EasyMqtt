@@ -84,7 +84,7 @@ class WebPortal {
       } else {
         page.replace("{type}", "text");
       }
-      page.replace("{name}", name);
+      page.replace("{key}", name);
       page.replace("{value}", entry->getValue());
     });
 
