@@ -15,7 +15,8 @@ class MqttEntry {
     int force = 0;
     int interval = -1;
     int forceUpdate = -1;
-    unsigned long lastUpdate = 0; // Last read of data
+    bool internal = false;
+    unsigned long lastUpdate = 0;
     String lastValue = "";
 
     PubSubClient* client = NULL;
@@ -37,6 +38,13 @@ class MqttEntry {
     }
 
   protected:
+    MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent, bool internal) {
+      setParent(parent);
+      client = &mqttClient;
+      setName(name);
+      MqttEntry::internal = internal;
+    }
+
     MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent) {
       setParent(parent);
       client = &mqttClient;
@@ -65,7 +73,7 @@ class MqttEntry {
     void setPublishFunction(std::function<void(MqttEntry*, String)> function) {
       publishFunction = function;
     }
-  
+    
   public:
     void callback(const char* topic, uint8_t* payload, unsigned int length) {
       if (strcmp(getTopic().c_str(), topic) == 0) {
@@ -117,6 +125,14 @@ class MqttEntry {
       return parent == NULL;
     }
 
+    bool isInternal() {
+      if (parent) {
+        return parent->isInternal() || internal;
+      } else {
+        return internal;
+      }
+    }
+
     virtual String getTopic() {
       if (parent) {
         return parent->getTopic() + "/" + name;
@@ -155,6 +171,7 @@ class MqttEntry {
     }
 
     void setValue(String value) {
+      lastUpdate = millis();
       lastValue = value;
       publish(value);
     }
@@ -192,6 +209,7 @@ class MqttEntry {
      * Create or get the sub topic with the name {name}
      */
     MqttEntry & get(String name) {
+      name.replace('.', '/');
       int pos = name.indexOf('/');
       if(pos < 0) {
         return operator[](name.c_str());

@@ -6,7 +6,7 @@
 
 class ConfigEntry : public MqttEntry {
   public:
-    ConfigEntry(PubSubClient& mqttClient, MqttEntry& parent) : MqttEntry("config", mqttClient, parent) {
+    ConfigEntry(PubSubClient& mqttClient, MqttEntry& parent) : MqttEntry("config", mqttClient, parent, true) {
       SPIFFS.begin();
       load();
       setPublishFunction([this](MqttEntry* entry, String message){
@@ -15,25 +15,19 @@ class ConfigEntry : public MqttEntry {
     }
 
     String getString(String key, String defaultValue) {
-      key.replace(".", "/");
       String value = get(key).getValue();
-      if(value == "") {
+      if(value == NULL) {
         return defaultValue;
       } else {
         return value;
       }
     }
     
-    const char* getCString(String key, String defaultValue) {
-      return getString(key, defaultValue).c_str();
-    }
-
     int getInt(String key, int defaultValue) {
       return getString(key, String(defaultValue)).toInt();
     }
 
     void set(String key, String value) {
-      key.replace(".", "/");
       get(key).setValue(value);
     }
 
@@ -45,7 +39,6 @@ class ConfigEntry : public MqttEntry {
     String getKey(MqttEntry* entry) {
       String key = entry->getTopic();
       key.replace(getTopic() + "/", "");
-      key.replace("/", ".");
       return key;
     }
 

@@ -17,6 +17,10 @@ class WebPortal {
     return path;
   }
 
+  String getRestPath(MqttEntry* entry) {
+    return "/rest" + getName(entry);
+  }
+
   public:
     WebPortal() {
     }
@@ -31,7 +35,7 @@ class WebPortal {
       webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
       mqtt->each([&](MqttEntry* entry) {
         if(entry->isIn() || entry->isOut()) {
-          webServer->on(getName(entry).c_str(), std::bind(&WebPortal::handleRest, this));
+          webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
         }
       });
       webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
@@ -43,30 +47,32 @@ class WebPortal {
     page += FPSTR(HTML_MAIN1);
 	  // Sensors
     mqtt->each([&](MqttEntry* entry) {
-      if(entry->isIn()) {
-
+      if(!entry->isInternal()) {
         String value = entry->getValue();
-        value.toLowerCase();
-        if(value == "on" || value == "open" || value == "true") {
-          value = FPSTR(HTML_VALUE_ON);
-        } else if (value == "off" || value == "closed" || value == "false") {
-          value = FPSTR(HTML_VALUE_OFF);
-        } else {
-          value = entry->getValue();
-        }
-        value.replace("{value}", entry->getValue());
+        if(value != NULL) {
+          value.toLowerCase();
+          if(value == "on" || value == "open" || value == "true") {
+            value = FPSTR(HTML_VALUE_ON);
+          } else if (value == "off" || value == "closed" || value == "false") {
+            value = FPSTR(HTML_VALUE_OFF);
+          } else {
+            value = "{value}";
+          }
+          value.replace("{value}", entry->getValue());
 
-        page += FPSTR(HTML_SENSOR);
-        page.replace("{name}", getName(entry));
-        page.replace("{value}", value);
-        page.replace("{last_updated}", String(entry->getLastUpdate() / 1000));
+          page += FPSTR(HTML_SENSOR);
+          page.replace("{name}", getName(entry));
+          page.replace("{path}", getRestPath(entry));
+          page.replace("{value}", value);
+          page.replace("{last_updated}", String(entry->getLastUpdate() / 1000));
+        }
       }
     });
 
     page += FPSTR(HTML_MAIN2);
 	  // Inputs
     mqtt->each([&](MqttEntry* entry) {
-      if(entry->isOut()) {
+      if(entry->isOut() && !entry->isInternal()) {
         page += FPSTR(HTML_INPUT);
         page.replace("{name}", getName(entry));
       }
@@ -77,8 +83,7 @@ class WebPortal {
     mqtt->get("config").each([&](MqttEntry* entry) {
       page += FPSTR(HTML_CONFIG_ENTRY);
       String name = getName(entry);
-      name = name.substring(7);
-      name.replace("/", ".");
+      name = name.substring(8);
       if(name.endsWith("password")) {
         page.replace("{type}", "password");
       } else {
@@ -125,7 +130,7 @@ class WebPortal {
   }
 
   void handleRest() {
-    MqttEntry* entry = &mqtt->get(webServer->uri().substring(1));
+    MqttEntry* entry = &mqtt->get(webServer->uri().substring(5));
     if(webServer->method() == HTTP_GET && entry->isIn()) {
       webServer->send(200, "text/plain", entry->getValue());
     } else if(webServer->method() == HTTP_POST && entry->isOut()) {
