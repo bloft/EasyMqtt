@@ -209,7 +209,6 @@ class MqttEntry {
      * Create or get the sub topic with the name {name}
      */
     MqttEntry & get(String name) {
-      name.replace('.', '/');
       int pos = name.indexOf('/');
       if(pos < 0) {
         return operator[](name.c_str());

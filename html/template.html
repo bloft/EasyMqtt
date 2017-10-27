@@ -21,7 +21,7 @@
     setInterval(function() {
       $("[data-ajaxurl]").each(function(index) {
         var ele = $(this);
-        $.ajax(ele.data("ajaxurl")).complete(function (data, textStatus, jqXHR) {
+        $.ajax(ele.data("ajaxurl")).success(function (data) {
           ele.html(data);
         });
       });
@@ -218,7 +218,7 @@
 									<div class="form-group">
                     <label for="{key}" class="col-sm-2 control-label">{key}</label>
     								<div class="col-sm-8">
-                      <input type="{type}" class="form-control" id="{key}" placeholder="" value="{value}">
+                      <input type="{type}" class="form-control" name="{key}" placeholder="" value="{value}">
     								</div>
 								  </div>
 <!-- split:config_entry -->

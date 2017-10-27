@@ -22,7 +22,7 @@ class ConfigEntry : public MqttEntry {
         return value;
       }
     }
-    
+
     int getInt(String key, int defaultValue) {
       return getString(key, String(defaultValue)).toInt();
     }
@@ -33,6 +33,7 @@ class ConfigEntry : public MqttEntry {
 
     void reset() {
       SPIFFS.remove("/config.cfg");
+	// ToDo: Remove all entries
     }
 
   protected:
@@ -44,6 +45,7 @@ class ConfigEntry : public MqttEntry {
 
   private:
     void load() {
+	Serial.println("Load config");
       File f = SPIFFS.open("/config.cfg", "r");
       if (f) {
         while(f.available()) {
@@ -52,6 +54,10 @@ class ConfigEntry : public MqttEntry {
           String key = line.substring(0, pos);
           String value = line.substring(pos+1, line.length()-1);
           set(key, value);
+		Serial.print(" ");
+		Serial.print(key);
+		Serial.print(" = ");
+		Serial.println(value);
         }
         f.close();
       }

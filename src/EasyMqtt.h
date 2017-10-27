@@ -26,19 +26,28 @@ class EasyMqtt : public MqttEntry {
       if(WiFi.status() == WL_DISCONNECTED) {
         debug("Connecting to wifi: " + config().getString("wifi.ssid", ""));
         WiFi.mode(WIFI_STA);
-        WiFi.begin(config().getString("wifi.ssid", "").c_str(), config().getString("wifi.password", "").c_str());
+
+	String sSsid = config().getString("wifi.ssid", "");
+	char ssid[sSsid.length() + 1];
+	strcpy(ssid, sSsid.c_str());
+
+	String sPass = config().getString("wifi.password", "");
+	char pass[sPass.length() + 1];
+	strcpy(pass, sPass.c_str());
+
+        WiFi.begin(ssid, pass);
 
         #ifdef DEBUG
         WiFi.printDiag(Serial);
         #endif
 
         int timer = 0;
-        while ((WiFi.status() == WL_DISCONNECTED) && timer < 50) {
+        while ((WiFi.status() == WL_DISCONNECTED) && timer < 60) {
           debug("Wifi Status", String(WiFi.status()));
           delay(500);
           timer++;
         }
-        if(timer < 50 && WiFi.status() == WL_CONNECTED) {
+        if(timer < 60 && WiFi.status() == WL_CONNECTED) {
           debug("WiFi connected");
           debug("IP address", WiFi.localIP().toString());
         } else {
@@ -54,17 +63,31 @@ class EasyMqtt : public MqttEntry {
 
     void connectMqtt() {
       if (!mqttClient.connected() && mqttDelay < millis()) {
-        debug("Configure MQTT");
+        debug("Connecting to MQTT");
         mqttClient.setClient(wifiClient);
         mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
           each([=](MqttEntry* entry){
             entry->callback(topic, payload, length);
           });
         });
-        mqttClient.setServer(config().getString("mqtt.host", "").c_str(), config().getInt("mqtt.port", 1883));
+		
+	String sHost = config().getString("mqtt.host", "");
+	char host[sHost.length() + 1];
+	strcpy(host, sHost.c_str());
+	
+	int port = config().getInt("mqtt.port", 1883);
+	
+	String sUser = config().getString("mqtt.username", "");
+	char user[sUser.length() + 1];
+	strcpy(user, sUser.c_str());
+	
+	String sPass = config().getString("mqtt.password", "");
+	char pass[sPass.length() + 1];
+	strcpy(pass, sPass.c_str());
+	
+        mqttClient.setServer(host, port);
         
-        debug("Connecting to MQTT");
-        if (mqttClient.connect(deviceId.c_str(), config().getString("mqtt.username", "").c_str(), config().getString("mqtt.password", "").c_str())) {
+        if (mqttClient.connect(deviceId.c_str(), user, pass)) {
           debug("Connected to MQTT");
     
           setPublishFunction([&](MqttEntry* entry, String message){
@@ -82,7 +105,7 @@ class EasyMqtt : public MqttEntry {
         } else {
           debug("Connection to MQTT failed, rc", String(mqttClient.state()));
 
-          mqttDelay = millis() + 1000;
+          mqttDelay = millis() + 5000;
         }
       }
     }
@@ -102,6 +125,9 @@ class EasyMqtt : public MqttEntry {
 
   public:
     EasyMqtt() : MqttEntry("easyMqtt", mqttClient) {
+        #ifdef DEBUG
+	Serial.begin(115200);
+        #endif
       deviceId = String(ESP.getChipId());
 
       debug("test");

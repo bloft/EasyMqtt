@@ -106,7 +106,7 @@ class WebPortal {
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isOut() || entry->isIn()) {
         page += FPSTR(HTML_API_DOC);
-        page.replace("{path}", getName(entry));
+        page.replace("{path}", getRestPath(entry));
       }
     });
     page += FPSTR(HTML_MAIN6);
@@ -117,12 +117,16 @@ class WebPortal {
   }
 
   void handleSaveConfig() {
+    Serial.println("Save");
     mqtt->get("config").each([&](MqttEntry* entry) {
         String name = getName(entry);
-        name = name.substring(7);
+        name = name.substring(8);
         name.replace("/", ".");
         // webServer->hasArg(name.c_str());
         entry->setValue(webServer->arg(name.c_str()));
+    	Serial.print(name);
+	Serial.print(" = ");
+    	Serial.println(webServer->arg(name.c_str()));
     });
     webServer->sendHeader("Location", String("/"), true);
     webServer->send(302, "text/plain", "");
@@ -130,7 +134,7 @@ class WebPortal {
   }
 
   void handleRest() {
-    MqttEntry* entry = &mqtt->get(webServer->uri().substring(5));
+    MqttEntry* entry = &mqtt->get(webServer->uri().substring(6));
     if(webServer->method() == HTTP_GET && entry->isIn()) {
       webServer->send(200, "text/plain", entry->getValue());
     } else if(webServer->method() == HTTP_POST && entry->isOut()) {
