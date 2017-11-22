@@ -17,7 +17,7 @@ class MqttEntry {
     int forceUpdate = -1;
     bool internal = false;
     unsigned long lastUpdate = 0;
-    String lastValue = "";
+    const char *lastValue = "";
 
     PubSubClient* client = NULL;
 
@@ -81,7 +81,7 @@ class MqttEntry {
         for (int i = 0; i < length; i++) {
           _payload += (char)payload[i];
         }
-        if(!isIn() || _payload != lastValue) {
+        if(!isIn() || _payload != getValue()) {
           update(_payload);
         }
       }
@@ -98,7 +98,7 @@ class MqttEntry {
           lastUpdate = time;
           String value = inFunction();
           if (value != "") {
-            if (value != lastValue || force > getForce()) {
+            if (value != getValue() || force > getForce()) {
               setValue(value);
               force = 0;
             }
@@ -167,12 +167,20 @@ class MqttEntry {
      * Get last value
      */
     String getValue() {
+      return String(lastValue);
+    }
+
+    const char* getCValue() {
       return lastValue;
     }
 
     void setValue(String value) {
       lastUpdate = millis();
-      lastValue = value;
+
+      // free(str);
+      // lastValue = (char *) malloc(value.length());
+      // strcpy(lastValue, value.c_str());
+      lastValue = value.c_str();
       publish(value);
     }
 

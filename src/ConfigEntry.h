@@ -14,13 +14,17 @@ class ConfigEntry : public MqttEntry {
       });
     }
 
-    String getString(String key, String defaultValue) {
-      String value = get(key).getValue();
+    const char* getCString(String key, const char* defaultValue) {
+      const char * value = get(key).getCValue();
       if(value == NULL) {
         return defaultValue;
       } else {
         return value;
       }
+    }
+
+    String getString(String key, String defaultValue) {
+      return String(getCString(key, defaultValue.c_str()));
     }
 
     int getInt(String key, int defaultValue) {
@@ -45,7 +49,7 @@ class ConfigEntry : public MqttEntry {
 
   private:
     void load() {
-	Serial.println("Load config");
+      Serial.println("Load config");
       File f = SPIFFS.open("/config.cfg", "r");
       if (f) {
         while(f.available()) {
@@ -54,10 +58,10 @@ class ConfigEntry : public MqttEntry {
           String key = line.substring(0, pos);
           String value = line.substring(pos+1, line.length()-1);
           set(key, value);
-		Serial.print(" ");
-		Serial.print(key);
-		Serial.print(" = ");
-		Serial.println(value);
+          Serial.print(" ");
+          Serial.print(key);
+          Serial.print(" = ");
+          Serial.println(value);
         }
         f.close();
       }
