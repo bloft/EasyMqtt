@@ -27,18 +27,7 @@ class EasyMqtt : public MqttEntry {
         debug("Connecting to wifi: " + config().getString("wifi.ssid", ""));
         WiFi.mode(WIFI_STA);
 
-	String sSsid = config().getString("wifi.ssid", "");
-	char ssid[sSsid.length() + 1];
-	strcpy(ssid, sSsid.c_str());
-        
-        String name = config().getString("device.name", deviceId);
-        //WiFi.hostname("WebPool"); // Set the name of the device
-
-	String sPass = config().getString("wifi.password", "");
-	char pass[sPass.length() + 1];
-	strcpy(pass, sPass.c_str());
-
-        WiFi.begin(ssid, pass);
+        WiFi.begin(config().getCString("wifi.ssid", ""), config().getCString("wifi.password", ""));
 
         #ifdef DEBUG
         WiFi.printDiag(Serial);
@@ -56,7 +45,7 @@ class EasyMqtt : public MqttEntry {
         } else {
           debug("WiFi connection timeout - Setup AP");
           WiFi.mode(WIFI_AP);
-          WiFi.softAP(config().getString("wifi.ap", "EasyMqtt").c_str(), "123456");
+          WiFi.softAP(config().getCString("wifi.ap", "EasyMqtt"), "123456");
           debug("IP address", WiFi.softAPIP().toString());
         }
         debug("devideId", deviceId);
@@ -74,23 +63,9 @@ class EasyMqtt : public MqttEntry {
           });
         });
 		
-	String sHost = config().getString("mqtt.host", "");
-	char host[sHost.length() + 1];
-	strcpy(host, sHost.c_str());
-	
-	int port = config().getInt("mqtt.port", 1883);
-	
-	String sUser = config().getString("mqtt.username", "");
-	char user[sUser.length() + 1];
-	strcpy(user, sUser.c_str());
-	
-	String sPass = config().getString("mqtt.password", "");
-	char pass[sPass.length() + 1];
-	strcpy(pass, sPass.c_str());
-	
-        mqttClient.setServer(host, port);
+        mqttClient.setServer(config().getCString("mqtt.host", ""), config().getInt("mqtt.port", 1883));
         
-        if (mqttClient.connect(deviceId.c_str(), user, pass)) {
+        if (mqttClient.connect(deviceId.c_str(), config().getCString("mqtt.username", ""), config().getCString("mqtt.password", ""))) {
           debug("Connected to MQTT");
     
           setPublishFunction([&](MqttEntry* entry, String message){
@@ -176,6 +151,19 @@ class EasyMqtt : public MqttEntry {
 
     ConfigEntry & config() {
       return *configEntry;
+    }
+
+    void debug(String msg) {
+      #ifdef DEBUG
+      Serial.println(msg);
+      #endif
+      if(mqttClient.connected()) {
+        get("system/debug").publish(msg);
+      }
+    }
+
+    void debug(String key, String value) {
+      debug(key + " = " + value);
     }
 
     String getDeviceId() {

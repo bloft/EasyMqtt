@@ -6,6 +6,8 @@
 #include "MqttEntry.h"
 #include "html.h"
 
+// http://usemodj.com/2016/08/25/esp8266-arducam-5mp-ov5642-camera-wifi-video-streaming/
+
 class WebPortal {
   private:
     std::unique_ptr<ESP8266WebServer> webServer;
@@ -142,6 +144,14 @@ class WebPortal {
       webServer->send(200, "text/plain", webServer->uri() + " Update");
     } else {
       webServer->send(404, "text/plain", "Unsupported");
+    }
+  }
+
+  void handleDebug() {
+    WiFiClient client = webServer->client();
+    webServer->sendContent("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+    while(client.connected()) {
+        client.write("this is a test\n");
     }
   }
 
