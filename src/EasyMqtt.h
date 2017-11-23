@@ -30,6 +30,9 @@ class EasyMqtt : public MqttEntry {
 	String sSsid = config().getString("wifi.ssid", "");
 	char ssid[sSsid.length() + 1];
 	strcpy(ssid, sSsid.c_str());
+        
+        String name = config().getString("device.name", deviceId);
+        //WiFi.hostname("WebPool"); // Set the name of the device
 
 	String sPass = config().getString("wifi.password", "");
 	char pass[sPass.length() + 1];
@@ -110,19 +113,6 @@ class EasyMqtt : public MqttEntry {
       }
     }
 
-    void debug(String msg) {
-      #ifdef DEBUG
-      Serial.println(msg);
-      #endif
-      if(mqttClient.connected()) {
-        get("system/debug").publish(msg);
-      }
-    }
-
-    void debug(String key, String value) {
-      debug(key + " = " + value);
-    }
-
   public:
     EasyMqtt() : MqttEntry("easyMqtt", mqttClient) {
         #ifdef DEBUG
@@ -130,13 +120,15 @@ class EasyMqtt : public MqttEntry {
         #endif
       deviceId = String(ESP.getChipId());
 
-      debug("test");
       configEntry = new ConfigEntry(mqttClient, *this);
       addChild(configEntry);
 
       get("system").setInterval(30);
       get("system")["deviceId"] << [this]() {
         return deviceId;
+      };
+      get("system")["name"] << [this]() {
+        return config().getString("device.name", deviceId);
       };
       get("system")["mem"]["heap"] << []() {
         return String(ESP.getFreeHeap());
@@ -167,6 +159,19 @@ class EasyMqtt : public MqttEntry {
           config().reset();
         }
       };
+    }
+
+    void debug(String msg) {
+      #ifdef DEBUG
+      Serial.println(msg);
+      #endif
+      if(mqttClient.connected()) {
+        get("system/debug").publish(msg);
+      }
+    }
+
+    void debug(String key, String value) {
+      debug(key + " = " + value);
     }
 
     ConfigEntry & config() {
