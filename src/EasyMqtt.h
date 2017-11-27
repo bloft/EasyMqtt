@@ -115,6 +115,17 @@ class EasyMqtt : public MqttEntry {
       // Setup wifi diag
       get("system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
+      }
+      get("system")["wifi"]["quality"] << []() {
+        int rssi = WiFi.RSSI();
+        int quality = 0;
+        if(rssi <= -100) {
+        } else if (rssi >= -50) {
+          rssi = 100;
+        } else {
+          quality = 2 * (RSSI + 100);
+        }
+        return String(quality);
       };
       get("system")["wifi"]["ssid"] << []() {
         return WiFi.SSID();
