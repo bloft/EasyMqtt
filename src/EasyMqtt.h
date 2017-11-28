@@ -11,6 +11,12 @@ class EasyMqtt : public MqttMap {
     PubSubClient mqttClient;
 
     String deviceId = "deviceId";
+
+    const char* wifi_ssid = "N/A";
+    const char* wifi_password = "N/A";
+
+    const char* mqtt_host = "N/A";
+    int         mqtt_port = 1883;
     const char* mqtt_username = "N/A";
     const char* mqtt_password = "N/A";
 
@@ -22,8 +28,35 @@ class EasyMqtt : public MqttMap {
     /**
        Handle connections to mqtt
     */
-    void mqttReconnect() {
-      while (!mqttClient.connected()) {
+    void reconnect() {
+      if(WiFi.status() == WL_DISCONNECTED) {
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(wifi_ssid, wifi_password);
+
+        int timer = 0;
+        while ((WiFi.status() == WL_DISCONNECTED) && timer < 60) {
+          delay(500);
+          #ifdef DEBUG
+          Serial.print(".");
+          #endif
+          timer++;
+        }
+        if(WiFi.status() == WL_CONNECTED) {
+          #ifdef DEBUG
+          Serial.println("WiFi connected");
+          Serial.print(" * IP address: ");
+          Serial.println(WiFi.localIP());
+          #endif
+        } else {
+          #ifdef DEBUG
+          Serial.println("WiFi Unable to connect");
+          #endif
+          delay(5000); 
+        }
+
+      }
+      if (WiFi.status() == WL_CONNECTED && !mqttClient.connected()) {
+        mqttClient.setServer(host, port);
         if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
           debug("Connected to MQTT");
           subscribe();
@@ -65,25 +98,19 @@ class EasyMqtt : public MqttMap {
        Setup connection to wifi
     */
     void wifi(const char* ssid, const char* password) {
-      WiFi.mode(WIFI_STA);
-      WiFi.begin(ssid, password);
-
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        #ifdef DEBUG
-        Serial.print(".");
-        #endif
-      }
-      #ifdef DEBUG
-      Serial.println("WiFi connected");
-      Serial.print("IP address: ");
-      Serial.println(WiFi.localIP());
-
-      Serial.print("Chip ID : ");
-      Serial.println(ESP.getChipId());
-      #endif
+      wifi_ssid = ssid;
+      wifi_password = password;
 
       // Setup wifi diag
+      get("system")["wifi"]["quality"] << []() {
+        if(WiFi.RSSI() <= -100) {
+          return String(0);
+        } else if(WiFi.RSSI() >= -50) {{
+          return String(100);
+        } else {
+          return String(2 * (WiFi.RSSI() + 100));
+        }
+      };
       get("system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
       };
@@ -103,7 +130,9 @@ class EasyMqtt : public MqttMap {
       mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
         callback(topic, payload, length);
       });
-      mqttClient.setServer(host, port);
+      
+      mqtt_host = host;
+      mqtt_port = port;
       mqtt_username = username;
       mqtt_password = password;
       
@@ -117,7 +146,7 @@ class EasyMqtt : public MqttMap {
        Handle the normal loop
     */
     void loop() {
-      mqttReconnect();
+      reconnect();
       mqttClient.loop();
       MqttMap::loop();
     }
