@@ -100,9 +100,10 @@ class EasyMqtt : public MqttEntry {
         #endif
       deviceId = String(ESP.getChipId());
 
-      setInterval(10);
+      setInterval(60);
+      setForce(10);
 
-      get("system").setInterval(30);
+      get("system").setInterval(300);
       get("system")["deviceId"] << [this]() {
         return deviceId;
       };
@@ -116,15 +117,15 @@ class EasyMqtt : public MqttEntry {
       // Setup wifi diag
       get("system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
-      }
+      };
       get("system")["wifi"]["quality"] << []() {
         int rssi = WiFi.RSSI();
         int quality = 0;
         if(rssi <= -100) {
         } else if (rssi >= -50) {
-          rssi = 100;
+          quality = 100;
         } else {
-          quality = 2 * (RSSI + 100);
+          quality = 2 * (rssi + 100);
         }
         return String(quality);
       };
@@ -141,19 +142,6 @@ class EasyMqtt : public MqttEntry {
           ESP.restart();
         }
       };
-    }
-
-    void debug(String msg) {
-      #ifdef DEBUG
-      Serial.println(msg);
-      #endif
-      if(mqttClient.connected()) {
-        get("system/debug").publish(msg);
-      }
-    }
-
-    void debug(String key, String value) {
-      debug(key + " = " + value);
     }
 
     void debug(String msg) {

@@ -102,7 +102,7 @@ class WebPortal {
   }
 
   void handleRest() {
-    MqttEntry* entry = &mqtt->get(webServer->uri().substring(6));
+    MqttEntry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
     if(webServer->method() == HTTP_GET && entry->isIn()) {
       webServer->send(200, "text/plain", entry->getValue());
     } else if(webServer->method() == HTTP_POST && entry->isOut()) {

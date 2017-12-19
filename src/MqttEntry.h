@@ -39,8 +39,6 @@ class MqttEntry {
 
   protected:
     MqttEntry(const char* name, PubSubClient& mqttClient) {
-      interval = 5;
-      forceUpdate = 10;
       client = &mqttClient;
       setName(name);
     }
@@ -53,7 +51,7 @@ class MqttEntry {
         }
         child = child->next;
       }
-      return addChild(new MqttEntry(name, client));
+      return addChild(new MqttEntry(name, *client));
     }
 
     MqttEntry *getRoot() {
