@@ -34,7 +34,6 @@ class WebPortal {
       #endif
       webServer.reset(new ESP8266WebServer(80));
       webServer->on("/", std::bind(&WebPortal::handleRoot, this));
-      webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
       mqtt->each([&](MqttEntry* entry) {
         if(entry->isIn() || entry->isOut()) {
           webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
@@ -81,22 +80,6 @@ class WebPortal {
     });
 
     page += FPSTR(HTML_MAIN3);
-    // Config
-    mqtt->get("config").each([&](MqttEntry* entry) {
-      page += FPSTR(HTML_CONFIG_ENTRY);
-      String name = getName(entry);
-      name = name.substring(8);
-      if(name.endsWith("password")) {
-        page.replace("{type}", "password");
-      } else {
-        page.replace("{type}", "text");
-      }
-      page.replace("{key}", name);
-      page.replace("{value}", entry->getValue());
-    });
-
-
-    page += FPSTR(HTML_MAIN4);
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isOut() || entry->isIn()) {
         page += FPSTR(HTML_API_DOC);
@@ -104,35 +87,18 @@ class WebPortal {
       }
     });
 
-    page += FPSTR(HTML_MAIN5);
+    page += FPSTR(HTML_MAIN4);
     mqtt->each([&](MqttEntry* entry) {
       if(entry->isOut() || entry->isIn()) {
         page += FPSTR(HTML_API_DOC);
         page.replace("{path}", getRestPath(entry));
       }
     });
-    page += FPSTR(HTML_MAIN6);
+    page += FPSTR(HTML_MAIN5);
     // About
     page.replace("{device_id}", mqtt->get("system/deviceId").getValue());
     page.replace("{topic}", mqtt->getTopic());
     webServer->send(200, "text/html", page);
-  }
-
-  void handleSaveConfig() {
-    Serial.println("Save");
-    mqtt->get("config").each([&](MqttEntry* entry) {
-        String name = getName(entry);
-        name = name.substring(8);
-        name.replace("/", ".");
-        // webServer->hasArg(name.c_str());
-        entry->setValue(webServer->arg(name.c_str()));
-    	Serial.print(name);
-	Serial.print(" = ");
-    	Serial.println(webServer->arg(name.c_str()));
-    });
-    webServer->sendHeader("Location", String("/"), true);
-    webServer->send(302, "text/plain", "");
-    ESP.restart();
   }
 
   void handleRest() {

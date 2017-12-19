@@ -38,19 +38,6 @@ class MqttEntry {
     }
 
   protected:
-    MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent, bool internal) {
-      setParent(parent);
-      client = &mqttClient;
-      setName(name);
-      MqttEntry::internal = internal;
-    }
-
-    MqttEntry(const char* name, PubSubClient& mqttClient, MqttEntry& parent) {
-      setParent(parent);
-      client = &mqttClient;
-      setName(name);
-    }
-
     MqttEntry(const char* name, PubSubClient& mqttClient) {
       interval = 5;
       forceUpdate = 10;
@@ -58,15 +45,43 @@ class MqttEntry {
       setName(name);
     }
 
-    void setParent(MqttEntry& parent) {
+    MqttEntry *getOrCreate(const char* name) {
+      MqttEntry *child = children;
+      while (child != NULL) {
+        if (strcmp(child->name, name) == 0) {
+          return child;
+        }
+        child = child->next;
+      }
+      return addChild(new MqttEntry(name, client));
+    }
+
+    MqttEntry *getRoot() {
+      if(parent) {
+        return parent->getRoot();
+      } else {
+        return this;
+      }
+    }
+
+    MqttEntry *setInternal(bool internal) {
+      this->internal = internal;
+      return this;
+    }
+
+    MqttEntry *getParent() {
+      return parent;
+    }
+
+    MqttEntry *setParent(MqttEntry& parent) {
       MqttEntry::parent = &parent;
+      return this;
     }
 
     MqttEntry* addChild(MqttEntry* child) {
-      child->setParent(*this);
-      MqttEntry * oldChild = children;
+      child->parent = this;
+      child->next = children;
       children = child;
-      children->next = oldChild;
       return child;
     }
 
@@ -127,7 +142,7 @@ class MqttEntry {
 
     bool isInternal() {
       if (parent) {
-        return parent->isInternal() || internal;
+        return internal || parent->isInternal();
       } else {
         return internal;
       }
@@ -149,7 +164,7 @@ class MqttEntry {
     }
 
     void setInterval(int interval) {
-      MqttEntry::interval = interval;
+      this->interval = interval;
     }
 
     int getForce() {
@@ -197,7 +212,7 @@ class MqttEntry {
     void publish(String message) {
       auto function = getPublishFunction();
       if(function) {
-        getPublishFunction()(this,message);
+        function(this,message);
       }
     }
     
@@ -216,27 +231,21 @@ class MqttEntry {
     /**
      * Create or get the sub topic with the name {name}
      */
-    MqttEntry & get(String name) {
-      int pos = name.indexOf('/');
-      if(pos < 0) {
-        return operator[](name.c_str());
-      } else {
-        return get(name.substring(0, pos)).get(name.substring(pos+1));
+    MqttEntry & get(const char* name) {
+      char *subName = strtok((char *)name, "/");
+      MqttEntry *entry = this;
+      while(subName != NULL) {
+        entry = entry->getOrCreate(subName);
+        subName = strtok(NULL, "/");
       }
+      return *entry;
     }
 
     /**
      * Create or get the sub topic with the name {name}
      */
     MqttEntry & operator[](const char* name) {
-      MqttEntry * child = children;
-      while (child != NULL) {
-        if (strcmp(child->name, name) == 0) {
-          return *child;
-        }
-        child = child->next;
-      }
-      return *addChild(new MqttEntry(name, *client, *this));
+      return *getOrCreate(name);
     }
 
     /**

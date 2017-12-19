@@ -5,7 +5,6 @@
 #include <PubSubClient.h>
 #include "MqttEntry.h"
 #include "WebPortal.h"
-#include "ConfigEntry.h"
 
 class EasyMqtt : public MqttEntry {
   private:
@@ -13,10 +12,16 @@ class EasyMqtt : public MqttEntry {
     PubSubClient mqttClient;
     WebPortal webPortal;
 
-    ConfigEntry* configEntry;
-
     String deviceId = "deviceId";
     long mqttDelay = 0;
+
+		const char* wifi_ssid = "N/A";
+    const char* wifi_password = "N/A";
+
+    const char* mqtt_host = "N/A";
+    int         mqtt_port = 1883;
+    const char* mqtt_username = "N/A";
+    const char* mqtt_password = "N/A";
 
   protected:
     /**
@@ -24,10 +29,10 @@ class EasyMqtt : public MqttEntry {
     */
     void connectWiFi() {
       if(WiFi.status() == WL_DISCONNECTED) {
-        debug("Connecting to wifi: " + config().getString("wifi.ssid", ""));
+        debug("Connecting to wifi");
         WiFi.mode(WIFI_STA);
 
-        WiFi.begin(config().getCString("wifi.ssid", ""), config().getCString("wifi.password", ""));
+        WiFi.begin(wifi_ssid, wifi_password);
 
         #ifdef DEBUG
         WiFi.printDiag(Serial);
@@ -45,7 +50,7 @@ class EasyMqtt : public MqttEntry {
         } else {
           debug("WiFi connection timeout - Setup AP");
           WiFi.mode(WIFI_AP);
-          WiFi.softAP(config().getCString("wifi.ap", "EasyMqtt"), "123456");
+          WiFi.softAP("EasyMqtt", "123456");
           debug("IP address", WiFi.softAPIP().toString());
         }
         debug("devideId", deviceId);
@@ -63,9 +68,9 @@ class EasyMqtt : public MqttEntry {
           });
         });
 		
-        mqttClient.setServer(config().getCString("mqtt.host", ""), config().getInt("mqtt.port", 1883));
+        mqttClient.setServer(mqtt_host, mqtt_port);
         
-        if (mqttClient.connect(deviceId.c_str(), config().getCString("mqtt.username", ""), config().getCString("mqtt.password", ""))) {
+        if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
           debug("Connected to MQTT");
     
           setPublishFunction([&](MqttEntry* entry, String message){
@@ -95,15 +100,11 @@ class EasyMqtt : public MqttEntry {
         #endif
       deviceId = String(ESP.getChipId());
 
-      configEntry = new ConfigEntry(mqttClient, *this);
-      addChild(configEntry);
+      setInterval(10);
 
       get("system").setInterval(30);
       get("system")["deviceId"] << [this]() {
         return deviceId;
-      };
-      get("system")["name"] << [this]() {
-        return config().getString("device.name", deviceId);
       };
       get("system")["mem"]["heap"] << []() {
         return String(ESP.getFreeHeap());
@@ -140,11 +141,6 @@ class EasyMqtt : public MqttEntry {
           ESP.restart();
         }
       };
-      get("system")["config"]["reset"] >> [this](String value) {
-        if(value == "reset") {
-          config().reset();
-        }
-      };
     }
 
     void debug(String msg) {
@@ -158,10 +154,6 @@ class EasyMqtt : public MqttEntry {
 
     void debug(String key, String value) {
       debug(key + " = " + value);
-    }
-
-    ConfigEntry & config() {
-      return *configEntry;
     }
 
     void debug(String msg) {
@@ -190,8 +182,8 @@ class EasyMqtt : public MqttEntry {
        Deprecated
     */
     void wifi(const char* ssid, const char* password) {
-      config().set("wifi.ssid", ssid);
-      config().set("wifi.password", password);
+			wifi_ssid = ssid;
+			wifi_password = password;
     }
 
     /**
@@ -199,10 +191,10 @@ class EasyMqtt : public MqttEntry {
        Deprecated
     */
     void mqtt(const char* host, int port, const char* username, const char* password) {
-      config().set("mqtt.host", host);
-      config().set("mqtt.port", String(port));
-      config().set("mqtt.username", username);
-      config().set("mqtt.password", password);
+			mqtt_host = host;
+			mqtt_port = port;
+			mqtt_username = username;
+			mqtt_password = password;
     }
 
     /**
