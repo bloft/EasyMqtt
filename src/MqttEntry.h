@@ -17,7 +17,7 @@ class MqttEntry {
     int forceUpdate = -1;
     bool internal = false;
     unsigned long lastUpdate = 0;
-    const char *lastValue = "";
+    String lastValue = "";
 
     PubSubClient* client = NULL;
 
@@ -180,20 +180,16 @@ class MqttEntry {
      * Get last value
      */
     String getValue() {
-      return String(lastValue);
+      return lastValue;
     }
 
     const char* getCValue() {
-      return lastValue;
+      return lastValue.c_str();
     }
 
     void setValue(String value) {
       lastUpdate = millis();
-
-      // free(str);
-      // lastValue = (char *) malloc(value.length());
-      // strcpy(lastValue, value.c_str());
-      lastValue = value.c_str();
+      lastValue = value;
       publish(value);
     }
 
