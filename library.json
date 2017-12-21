@@ -6,7 +6,7 @@
         "type": "git",
         "url": "https://github.com/bloft/EasyMqtt.git"
     },
-    "version": "0.2",
+    "version": "0.3",
     "exclude": "tests",
     "examples": "examples/*/*.ino",
     "frameworks": "arduino",

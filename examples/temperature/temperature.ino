@@ -16,16 +16,16 @@ void setup() {
     } else {
       return String(value);
     }
-  }
+  };
 
   mqtt["humidity"] << []() {
-    float value = dht.dht.readHumidity();
+    float value = dht.readHumidity();
     if(isnan(value)) {
       return String("");
     } else {
       return String(value);
     }
-  }
+  };
 
 }
 

@@ -7,7 +7,7 @@
 #######################################
 
 EasyMqtt	KEYWORD1
-MqttMap	KEYWORD1
+MqttEntry	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
