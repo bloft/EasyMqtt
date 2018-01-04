@@ -15,7 +15,6 @@ class MqttEntry {
     int force = 0;
     int interval = -1;
     int forceUpdate = -1;
-    bool internal = false;
     unsigned long lastUpdate = 0;
     String lastValue = "";
 
@@ -60,11 +59,6 @@ class MqttEntry {
       } else {
         return this;
       }
-    }
-
-    MqttEntry *setInternal(bool internal) {
-      this->internal = internal;
-      return this;
     }
 
     MqttEntry *getParent() {
@@ -139,6 +133,7 @@ class MqttEntry {
     }
 
     bool isInternal() {
+      bool internal = name[0] == '$';
       if (parent) {
         return internal || parent->isInternal();
       } else {

@@ -103,22 +103,23 @@ class EasyMqtt : public MqttEntry {
       setInterval(60);
       setForce(10);
 
-      get("system").setInterval(300);
-      get("system")["deviceId"] << [this]() {
+      get("$system").setInterval(300);
+      //get("$system").setInternal(true);
+      get("$system")["deviceId"] << [this]() {
         return deviceId;
       };
-      get("system")["mem"]["heap"] << []() {
+      get("$system")["mem"]["heap"] << []() {
         return String(ESP.getFreeHeap());
       };
-      get("system")["uptime"] << []() {
+      get("$system")["uptime"] << []() {
         return String(millis() / 1000);
       };
 
       // Setup wifi diag
-      get("system")["wifi"]["rssi"] << []() {
+      get("$system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
       };
-      get("system")["wifi"]["quality"] << []() {
+      get("$system")["wifi"]["quality"] << []() {
         int rssi = WiFi.RSSI();
         int quality = 0;
         if(rssi <= -100) {
@@ -129,14 +130,14 @@ class EasyMqtt : public MqttEntry {
         }
         return String(quality);
       };
-      get("system")["wifi"]["ssid"] << []() {
+      get("$system")["wifi"]["ssid"] << []() {
         return WiFi.SSID();
       };
-      get("system")["wifi"]["ip"] << []() {
+      get("$system")["wifi"]["ip"] << []() {
         return WiFi.localIP().toString();
       };
 
-      get("system")["restart"] >> [this](String value) {
+      get("$system")["restart"] >> [this](String value) {
         if(value == "restart") {
           debug("Restart");
           ESP.restart();
@@ -149,7 +150,7 @@ class EasyMqtt : public MqttEntry {
       Serial.println(msg);
       #endif
       if(mqttClient.connected()) {
-        get("system/debug").publish(msg);
+        get("$system/debug").publish(msg);
       }
     }
 

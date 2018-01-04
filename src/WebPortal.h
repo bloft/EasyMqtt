@@ -96,7 +96,7 @@ class WebPortal {
     });
     page += FPSTR(HTML_MAIN5);
     // About
-    page.replace("{device_id}", mqtt->get("system/deviceId").getValue());
+    page.replace("{device_id}", mqtt->get("$system/deviceId").getValue());
     page.replace("{topic}", mqtt->getTopic());
     webServer->send(200, "text/html", page);
   }
