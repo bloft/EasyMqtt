@@ -120,14 +120,9 @@ class EasyMqtt : public MqttEntry {
         return String(WiFi.RSSI());
       };
       get("$system")["wifi"]["quality"] << []() {
-        int rssi = WiFi.RSSI();
-        int quality = 0;
-        if(rssi <= -100) {
-        } else if (rssi >= -50) {
-          quality = 100;
-        } else {
-          quality = 2 * (rssi + 100);
-        }
+        int quality = (WiFi.RSSI()+100)*1.6667;
+        if(quality < 0) quality = 0;
+        if(quality > 100) quality = 100;
         return String(quality);
       };
       get("$system")["wifi"]["ssid"] << []() {
