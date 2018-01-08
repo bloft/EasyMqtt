@@ -160,6 +160,11 @@ class MqttEntry {
       this->interval = interval;
     }
 
+    void setInterval(int interval, int force) {
+      this->interval = interval;
+      forceUpdate = force;
+    }
+
     int getForce() {
       if(forceUpdate < 0) {
         return parent->getForce();
