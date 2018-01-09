@@ -1,15 +1,15 @@
-#ifndef MqttEntry_h
-#define MqttEntry_h
+#ifndef Entry_h
+#define Entry_h
 
 #include <functional>
 #include <Arduino.h>
 #include <PubSubClient.h>
 
-class MqttEntry {
+class Entry {
   private:
     std::function<void(String)> outFunction = NULL;
     std::function<String()> inFunction = NULL;
-    std::function<void(MqttEntry*, String)> publishFunction = NULL;
+    std::function<void(Entry*, String)> publishFunction = NULL;
 
     char* name = "N/A";
     int force = 0;
@@ -20,16 +20,16 @@ class MqttEntry {
 
     PubSubClient* client = NULL;
 
-    MqttEntry* parent = NULL;
-    MqttEntry* next = NULL;
-    MqttEntry* children = NULL;
+    Entry* parent = NULL;
+    Entry* next = NULL;
+    Entry* children = NULL;
 
     void setName(const char* name) {
-      MqttEntry::name = (char*)malloc(strlen(name)+1);
-      strncpy(MqttEntry::name, name, strlen(name)+1);
+      Entry::name = (char*)malloc(strlen(name)+1);
+      strncpy(Entry::name, name, strlen(name)+1);
     }
     
-    std::function<void(MqttEntry*, String)> getPublishFunction() {
+    std::function<void(Entry*, String)> getPublishFunction() {
       if(publishFunction == NULL && parent) {
         return parent->getPublishFunction();
       }
@@ -37,23 +37,23 @@ class MqttEntry {
     }
 
   protected:
-    MqttEntry(const char* name, PubSubClient& mqttClient) {
+    Entry(const char* name, PubSubClient& mqttClient) {
       client = &mqttClient;
       setName(name);
     }
 
-    MqttEntry *getOrCreate(const char* name) {
-      MqttEntry *child = children;
+    Entry *getOrCreate(const char* name) {
+      Entry *child = children;
       while (child != NULL) {
         if (strcmp(child->name, name) == 0) {
           return child;
         }
         child = child->next;
       }
-      return addChild(new MqttEntry(name, *client));
+      return addChild(new Entry(name, *client));
     }
 
-    MqttEntry *getRoot() {
+    Entry *getRoot() {
       if(parent) {
         return parent->getRoot();
       } else {
@@ -61,27 +61,40 @@ class MqttEntry {
       }
     }
 
-    MqttEntry *getParent() {
+    Entry *getParent() {
       return parent;
     }
 
-    MqttEntry *setParent(MqttEntry& parent) {
-      MqttEntry::parent = &parent;
+    Entry *setParent(Entry& parent) {
+      Entry::parent = &parent;
       return this;
     }
 
-    MqttEntry* addChild(MqttEntry* child) {
+    Entry* addChild(Entry* child) {
       child->parent = this;
       child->next = children;
       children = child;
       return child;
     }
 
-    void setPublishFunction(std::function<void(MqttEntry*, String)> function) {
+    void setPublishFunction(std::function<void(Entry*, String)> function) {
       publishFunction = function;
     }
     
   public:
+    void debug(String key, String value) {
+      debug(key + " = " + value);
+    }
+
+    void debug(String msg) {
+      #ifdef DEBUG
+      Serial.println(msg);
+      #endif
+      if(mqttClient.connected()) {
+        getRoot()->get("$system/debug").publish(msg);
+      }
+    }
+
     void callback(const char* topic, uint8_t* payload, unsigned int length) {
       if (strcmp(getTopic().c_str(), topic) == 0) {
         String _payload = "";
@@ -172,10 +185,6 @@ class MqttEntry {
       return forceUpdate;
     }
 
-    void setForce(int force) {
-      forceUpdate = force;
-    }
-
     /**
      * Get last value
      */
@@ -213,9 +222,9 @@ class MqttEntry {
     /**
      * Iterate over each child, including sub children
      */
-    void each(std::function<void(MqttEntry*)> f) {
+    void each(std::function<void(Entry*)> f) {
       f(this);
-      MqttEntry* child = children;
+      Entry* child = children;
       while (child != NULL) {
         child->each(f);
         child = child->next;
@@ -225,9 +234,9 @@ class MqttEntry {
     /**
      * Create or get the sub topic with the name {name}
      */
-    MqttEntry & get(const char* name) {
+    Entry & get(const char* name) {
       char *subName = strtok((char *)name, "/");
-      MqttEntry *entry = this;
+      Entry *entry = this;
       while(subName != NULL) {
         entry = entry->getOrCreate(subName);
         subName = strtok(NULL, "/");
@@ -238,7 +247,7 @@ class MqttEntry {
     /**
      * Create or get the sub topic with the name {name}
      */
-    MqttEntry & operator[](const char* name) {
+    Entry & operator[](const char* name) {
       return *getOrCreate(name);
     }
 
@@ -246,14 +255,14 @@ class MqttEntry {
      *  Read data from function and send it to mqtt
      */
     void operator<<(std::function<String()> inFunction) {
-      MqttEntry::inFunction = inFunction;
+      Entry::inFunction = inFunction;
     }
 
     /**
      *  Handle data comming from mqtt
      */
     void operator>>(std::function<void(String payload)> outFunction) {
-      MqttEntry::outFunction = outFunction;
+      Entry::outFunction = outFunction;
     }
 };
 

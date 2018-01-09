@@ -3,10 +3,10 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include "MqttEntry.h"
+#include "Entry.h"
 #include "WebPortal.h"
 
-class EasyMqtt : public MqttEntry {
+class EasyMqtt : public Entry {
   private:
     WiFiClient wifiClient;
     PubSubClient mqttClient;
@@ -63,7 +63,7 @@ class EasyMqtt : public MqttEntry {
         debug("Connecting to MQTT");
         mqttClient.setClient(wifiClient);
         mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
-          each([=](MqttEntry* entry){
+          each([=](Entry* entry){
             entry->callback(topic, payload, length);
           });
         });
@@ -73,13 +73,13 @@ class EasyMqtt : public MqttEntry {
         if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
           debug("Connected to MQTT");
     
-          setPublishFunction([&](MqttEntry* entry, String message){
+          setPublishFunction([&](Entry* entry, String message){
             mqttClient.publish(entry->getTopic().c_str(), message.c_str());
           });
 
           debug("Topic", getTopic()); 
           
-          each([&](MqttEntry* entry){
+          each([&](Entry* entry){
             if (entry->isOut()) {
               mqttClient.subscribe(entry->getTopic().c_str());
             }
@@ -94,17 +94,15 @@ class EasyMqtt : public MqttEntry {
     }
 
   public:
-    EasyMqtt() : MqttEntry("easyMqtt", mqttClient) {
+    EasyMqtt() : Entry("easyMqtt", mqttClient) {
         #ifdef DEBUG
 	Serial.begin(115200);
         #endif
       deviceId = String(ESP.getChipId());
 
-      setInterval(60);
-      setForce(10);
+      setInterval(60, 10);
 
       get("$system").setInterval(300);
-      //get("$system").setInternal(true);
       get("$system")["deviceId"] << [this]() {
         return deviceId;
       };
@@ -138,23 +136,6 @@ class EasyMqtt : public MqttEntry {
           ESP.restart();
         }
       };
-    }
-
-    void debug(String key, String value) {
-      debug(key + " = " + value);
-    }
-
-    void debug(String msg) {
-      #ifdef DEBUG
-      Serial.println(msg);
-      #endif
-      if(mqttClient.connected()) {
-        get("$system/debug").publish(msg);
-      }
-    }
-
-    void debug(String key, String value) {
-      debug(key + " = " + value);
     }
 
     String getDeviceId() {
@@ -193,7 +174,7 @@ class EasyMqtt : public MqttEntry {
       connectMqtt();
       mqttClient.loop();
       webPortal.loop();
-      each([](MqttEntry* entry){
+      each([](Entry* entry){
           entry->update();
       });
     }
