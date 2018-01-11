@@ -67,9 +67,9 @@ class ConfigEntry : public Entry {
       });
     }
 
-    const char *getString(const char *key, const char *defaultValue) {
+    String getString(const char *key, const char *defaultValue) {
       // ToDo: if no value. setString(key, defaultValue)
-      return get(key).getValue().c_str();
+      return get(key).getValue();
     }
 
     void setString(const char *key, const char *value) {

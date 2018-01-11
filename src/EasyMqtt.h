@@ -106,7 +106,7 @@ class EasyMqtt : public Entry {
       // Add config entry
       configEntry = new ConfigEntry(mqttClient);
       addChild(configEntry);
-
+      
       setInterval(60, 10);
 
       get("$system").setInterval(300);
