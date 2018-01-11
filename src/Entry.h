@@ -90,7 +90,7 @@ class Entry {
       #ifdef DEBUG
       Serial.println(msg);
       #endif
-      if(mqttClient.connected()) {
+      if(client->connected()) {
         getRoot()->get("$system/debug").publish(msg);
       }
     }

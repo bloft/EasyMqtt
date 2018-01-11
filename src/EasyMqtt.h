@@ -4,6 +4,7 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "Entry.h"
+#include "ConfigEntry.h"
 #include "WebPortal.h"
 
 class EasyMqtt : public Entry {
@@ -11,6 +12,8 @@ class EasyMqtt : public Entry {
     WiFiClient wifiClient;
     PubSubClient mqttClient;
     WebPortal webPortal;
+
+    ConfigEntry* configEntry;
 
     String deviceId = "deviceId";
     long mqttDelay = 0;
@@ -100,6 +103,10 @@ class EasyMqtt : public Entry {
         #endif
       deviceId = String(ESP.getChipId());
 
+      // Add config entry
+      configEntry = new ConfigEntry(mqttClient);
+      addChild(configEntry);
+
       setInterval(60, 10);
 
       get("$system").setInterval(300);
@@ -144,6 +151,10 @@ class EasyMqtt : public Entry {
     
     virtual String getTopic() {
       return String("easyMqtt/") + deviceId;
+    }
+
+    ConfigEntry & config() {
+      return *configEntry;
     }
 
     /**

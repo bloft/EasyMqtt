@@ -17,7 +17,7 @@ class ConfigEntry : public Entry {
           int pos = line.indexOf("=");
           String key = line.substring(0, pos);
           String value = line.substring(pos+1, line.length()-1);
-          set(key, value);
+          setString(key.c_str(), value.c_str());
           debug(key, value);
         }
         f.close();
@@ -30,7 +30,7 @@ class ConfigEntry : public Entry {
       debug("Save config");
       File f = SPIFFS.open("/config.cfg", "w");
       if (f) {
-        each([&](MqttEntry* entry) {
+        each([&](Entry* entry) {
           if(entry->getTopic() != getTopic()) {
             f.print(getKey(entry));
             f.print("=");
@@ -49,25 +49,27 @@ class ConfigEntry : public Entry {
       // ToDo: Remove all child entries (children = NULL;)
     }
 
-    String getKey(MqttEntry* entry) {
+    String getKey(Entry* entry) {
       String key = entry->getTopic();
       key.replace(getTopic() + "/", "");
       return key;
     }
 
   public:
-    ConfigEntry() : Entry("$config", mqttClient) {
+    ConfigEntry(PubSubClient& mqttClient) : Entry("$config", mqttClient) {
       SPIFFS.begin();
       load();
+
+      // ToDo: add out function
 
       setPublishFunction([&](Entry* entry, String message){
         save();
       });
     }
 
-    char *getString(const char *key, const char *defaultValue) {
+    const char *getString(const char *key, const char *defaultValue) {
       // ToDo: if no value. setString(key, defaultValue)
-      return get(key).getValue();
+      return get(key).getValue().c_str();
     }
 
     void setString(const char *key, const char *value) {
