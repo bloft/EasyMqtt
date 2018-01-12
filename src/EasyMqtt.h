@@ -43,7 +43,7 @@ class EasyMqtt : public Entry {
 
         int timer = 0;
         while ((WiFi.status() == WL_DISCONNECTED) && timer < 60) {
-          debug("Wifi Status", String(WiFi.status()));
+          debug("Wifi Status", WiFi.status());
           delay(500);
           timer++;
         }
@@ -89,7 +89,7 @@ class EasyMqtt : public Entry {
           });
           mqttDelay = 0;
         } else {
-          debug("Connection to MQTT failed, rc", String(mqttClient.state()));
+          debug("Connection to MQTT failed, rc", mqttClient.state());
 
           mqttDelay = millis() + 5000;
         }
@@ -98,9 +98,10 @@ class EasyMqtt : public Entry {
 
   public:
     EasyMqtt() : Entry("easyMqtt", mqttClient) {
-        #ifdef DEBUG
-	Serial.begin(115200);
-        #endif
+      #ifdef DEBUG
+        Serial.begin(115200);
+      #endif
+        
       deviceId = String(ESP.getChipId());
 
       // Add config entry

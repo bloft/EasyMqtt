@@ -82,16 +82,24 @@ class Entry {
     }
     
   public:
+    void debug(String key, bool value) {
+      debug(key + " = " + (value ? "true" : "false"));
+    }
+
+    void debug(String key, int value) {
+      debug(key + " = " + value);
+    }
+
     void debug(String key, String value) {
       debug(key + " = " + value);
     }
 
     void debug(String msg) {
       #ifdef DEBUG
-      Serial.println(msg);
+        Serial.println(msg);
       #endif
       if(client->connected()) {
-        getRoot()->get("$system/debug").publish(msg);
+        getRoot()->get("$system")["debug"].publish(msg);
       }
     }
 
