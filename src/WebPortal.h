@@ -29,9 +29,7 @@ class WebPortal {
 
     void setup(Entry& mqttEntry) {
       mqtt = &mqttEntry;
-      #ifdef DEBUG
-        Serial.println("Setup Web Portal");
-      #endif
+      mqtt->debug("Setup Web Portal");
       webServer.reset(new ESP8266WebServer(80));
       webServer->on("/", std::bind(&WebPortal::handleRoot, this));
       mqtt->each([&](Entry* entry) {
@@ -62,11 +60,14 @@ class WebPortal {
           value.replace("{value}", entry->getValue());
 
           page += FPSTR(HTML_SENSOR);
-          page.replace("{name}", getName(entry));
-          page.replace("{path}", getRestPath(entry));
           page.replace("{value}", value);
           page.replace("{last_updated}", String(entry->getLastUpdate() / 1000));
         }
+        if(entry->isOut()) {
+          page += FPSTR(HTML_INPUT);
+        }
+        page.replace("{name}", getName(entry));
+        page.replace("{path}", getRestPath(entry));
       }
     });
 
@@ -76,6 +77,7 @@ class WebPortal {
       if(entry->isOut() && !entry->isInternal()) {
         page += FPSTR(HTML_INPUT);
         page.replace("{name}", getName(entry));
+        page.replace("{path}", getRestPath(entry));
       }
     });
 
@@ -96,7 +98,7 @@ class WebPortal {
     });
     page += FPSTR(HTML_MAIN5);
     // About
-    page.replace("{device_id}", mqtt->get("$system/deviceId").getValue());
+    page.replace("{device_id}", mqtt->get("$system")["deviceId"].getValue());
     page.replace("{topic}", mqtt->getTopic());
     webServer->send(200, "text/html", page);
   }
@@ -110,14 +112,6 @@ class WebPortal {
       webServer->send(200, "text/plain", webServer->uri() + " Update");
     } else {
       webServer->send(404, "text/plain", "Unsupported");
-    }
-  }
-
-  void handleDebug() {
-    WiFiClient client = webServer->client();
-    webServer->sendContent("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n");
-    while(client.connected()) {
-        client.write("this is a test\n");
     }
   }
 
