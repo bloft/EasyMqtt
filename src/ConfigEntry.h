@@ -61,6 +61,9 @@ class ConfigEntry : public Entry {
       load();
 
       // ToDo: add out function
+      //get(key) >> [this](String value) {
+      //  setValue(value);
+      //}
 
       setPublishFunction([&](Entry* entry, String message){
         save();
@@ -68,8 +71,12 @@ class ConfigEntry : public Entry {
     }
 
     String getString(const char *key, const char *defaultValue) {
-      // ToDo: if no value. setString(key, defaultValue)
-      return get(key).getValue();
+      String value = get(key).getValue();
+      if(value == "") {
+        get(key).setValue(defaultValue);
+        value = defaultValue;
+      }
+      return value;
     }
 
     void setString(const char *key, const char *value) {

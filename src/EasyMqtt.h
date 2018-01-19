@@ -31,14 +31,14 @@ class EasyMqtt : public Entry {
        Handle connections to mqtt
     */
     void connectWiFi() {
-      if(WiFi.status() == WL_DISCONNECTED) {
+      if(WiFi.status() != WL_CONNECTED) {
         debug("Connecting to wifi");
         WiFi.mode(WIFI_STA);
 
         WiFi.begin(wifi_ssid, wifi_password);
 
         #ifdef DEBUG
-        WiFi.printDiag(Serial);
+          WiFi.printDiag(Serial);
         #endif
 
         int timer = 0;
@@ -183,12 +183,16 @@ class EasyMqtt : public Entry {
     */
     void loop() {
       connectWiFi();
-      connectMqtt();
-      mqttClient.loop();
-      webPortal.loop();
-      each([](Entry* entry){
+      if(WiFi.status() != WL_CONNECTED) {
+        connectMqtt();
+        if(mqttClient.connected()) {
+          mqttClient.loop();
+        }
+        webPortal.loop();
+        each([](Entry* entry){
           entry->update();
-      });
+        });
+      }
     }
 };
 
