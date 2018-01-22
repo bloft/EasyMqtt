@@ -73,11 +73,11 @@ class EasyMqtt : public Entry {
 		
         mqttClient.setServer(mqtt_host, mqtt_port);
         
-        if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password)) {
+        if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password), get("$system")["online"].getTopic().c_str(), 1, true, "OFF") {
           debug("Connected to MQTT");
     
           setPublishFunction([&](Entry* entry, String message){
-            mqttClient.publish(entry->getTopic().c_str(), message.c_str());
+            mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
           });
 
           debug("Topic", getTopic()); 
@@ -136,6 +136,9 @@ class EasyMqtt : public Entry {
       };
       get("$system")["wifi"]["ip"] << []() {
         return WiFi.localIP().toString();
+      };
+      get("$system")["online"] << []() {
+        return "ON";
       };
 
       get("$system")["restart"] >> [this](String value) {
