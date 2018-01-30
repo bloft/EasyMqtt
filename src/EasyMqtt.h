@@ -61,6 +61,18 @@ class EasyMqtt : public Entry {
       }
     }
 
+    void disconnectWiFi() {
+      if(WiFi.status() == WL_CONNECTED) {
+        WiFi.softAPdisconnect();
+        WiFi.disconnect();
+        int timeout = 0;
+        while(WiFi.status() != WL_DISCONNECTED && timeout < 200){
+          delay(10);
+          timeout++;
+        }
+      }
+    }
+
     void connectMqtt() {
       if (!mqttClient.connected() && mqttDelay < millis()) {
         debug("Connecting to MQTT");
@@ -77,7 +89,9 @@ class EasyMqtt : public Entry {
           debug("Connected to MQTT");
     
           setPublishFunction([&](Entry* entry, String message){
-            mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
+            if(mqttClient.connected()) {
+              mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
+            }
           });
 
           debug("Topic", getTopic()); 
@@ -97,7 +111,7 @@ class EasyMqtt : public Entry {
     }
 
   public:
-    EasyMqtt() : Entry("easyMqtt", mqttClient) {
+    EasyMqtt() : Entry("easyMqtt") {
       #ifdef DEBUG
         Serial.begin(115200);
       #endif
@@ -105,7 +119,7 @@ class EasyMqtt : public Entry {
       deviceId = String(ESP.getChipId());
 
       // Add config entry
-      configEntry = new ConfigEntry(mqttClient);
+      configEntry = new ConfigEntry();
       addChild(configEntry);
       
       setInterval(60, 10);
@@ -120,8 +134,6 @@ class EasyMqtt : public Entry {
       get("$system")["uptime"] << []() {
         return String(millis() / 1000);
       };
-
-      // Setup wifi diag
       get("$system")["wifi"]["rssi"] << []() {
         return String(WiFi.RSSI());
       };
@@ -144,6 +156,7 @@ class EasyMqtt : public Entry {
       get("$system")["restart"] >> [this](String value) {
         if(value == "restart") {
           debug("Restart");
+          disconnectWiFi();
           ESP.restart();
         }
       };

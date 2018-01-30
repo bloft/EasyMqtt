@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <Arduino.h>
-#include <PubSubClient.h>
+
 
 class Entry {
   private:
@@ -17,8 +17,6 @@ class Entry {
     int forceUpdate = -1;
     unsigned long lastUpdate = 0;
     String lastValue = "";
-
-    PubSubClient* client = NULL;
 
     Entry* parent = NULL;
     Entry* next = NULL;
@@ -37,8 +35,7 @@ class Entry {
     }
 
   protected:
-    Entry(const char* name, PubSubClient& mqttClient) {
-      client = &mqttClient;
+    Entry(const char* name) {
       setName(name);
     }
 
@@ -50,7 +47,7 @@ class Entry {
         }
         child = child->next;
       }
-      return addChild(new Entry(name, *client));
+      return addChild(new Entry(name));
     }
 
     Entry *getRoot() {
@@ -98,9 +95,7 @@ class Entry {
       #ifdef DEBUG
         Serial.println(msg);
       #endif
-      if(client->connected()) {
-        getRoot()->get("$system")["debug"].publish(msg);
-      }
+      getRoot()->get("$system")["debug"].publish(msg);
     }
 
     void callback(const char* topic, uint8_t* payload, unsigned int length) {
@@ -223,7 +218,7 @@ class Entry {
     void publish(String message) {
       auto function = getPublishFunction();
       if(function) {
-        function(this,message);
+        function(this, message);
       }
     }
     
@@ -250,6 +245,16 @@ class Entry {
         subName = strtok(NULL, "/");
       }
       return *entry;
+    }
+
+    /**
+     * Create or get the sub topic with the name {name}
+     */
+    Entry & operator[](int index) {
+      int numOfDigits = log10(index) + 1;
+      char* arr = (char*)calloc(numOfDigits, sizeof(char));
+      itoa(index, arr, 10);
+      return *getOrCreate(arr);
     }
 
     /**

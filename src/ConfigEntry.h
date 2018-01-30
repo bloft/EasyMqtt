@@ -56,7 +56,7 @@ class ConfigEntry : public Entry {
     }
 
   public:
-    ConfigEntry(PubSubClient& mqttClient) : Entry("$config", mqttClient) {
+    ConfigEntry() : Entry("$config") {
       SPIFFS.begin();
       load();
 
