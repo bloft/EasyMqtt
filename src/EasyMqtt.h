@@ -199,7 +199,7 @@ class EasyMqtt : public Entry {
     */
     void loop() {
       connectWiFi();
-      if(WiFi.status() != WL_CONNECTED) {
+      if(WiFi.status() == WL_CONNECTED) {
         connectMqtt();
         if(mqttClient.connected()) {
           mqttClient.loop();
