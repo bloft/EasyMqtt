@@ -8,6 +8,26 @@ class ConfigEntry : public Entry {
   private:
 
   protected:
+    String getKey(Entry* entry) {
+      String key = entry->getTopic();
+      key.replace(getTopic() + "/", "");
+      return key;
+    }
+
+  public:
+    ConfigEntry() : Entry("$config") {
+      SPIFFS.begin();
+
+      // ToDo: add out function
+      //get(key) >> [this](String value) {
+      //  setValue(value);
+      //}
+
+      setPublishFunction([&](Entry* entry, String message){
+        save();
+      });
+    }
+
     void load() {
       debug("Load config");
       File f = SPIFFS.open("/config.cfg", "r");
@@ -44,30 +64,9 @@ class ConfigEntry : public Entry {
       }
     }
 
-		void reset() {
+    void reset() {
       SPIFFS.remove("/config.cfg");
       // ToDo: Remove all child entries (children = NULL;)
-    }
-
-    String getKey(Entry* entry) {
-      String key = entry->getTopic();
-      key.replace(getTopic() + "/", "");
-      return key;
-    }
-
-  public:
-    ConfigEntry() : Entry("$config") {
-      SPIFFS.begin();
-      load();
-
-      // ToDo: add out function
-      //get(key) >> [this](String value) {
-      //  setValue(value);
-      //}
-
-      setPublishFunction([&](Entry* entry, String message){
-        save();
-      });
     }
 
     String getString(const char *key, const char *defaultValue) {

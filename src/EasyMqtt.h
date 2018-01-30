@@ -121,6 +121,8 @@ class EasyMqtt : public Entry {
       // Add config entry
       configEntry = new ConfigEntry();
       addChild(configEntry);
+
+      configEntry->load();
       
       setInterval(60, 10);
 

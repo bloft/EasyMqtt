@@ -14,8 +14,12 @@ class WebPortal {
     Entry* mqtt;
 
   String getName(Entry* entry) {
+      return getName(mqtt, entry);
+  }
+
+  String getName(Entry* root, Entry* entry) {
     String path = entry->getTopic();
-    path.replace(mqtt->getTopic(), "");
+    path.replace(root->getTopic(), "");
     return path;
   }
 
@@ -71,23 +75,15 @@ class WebPortal {
       }
     });
 
-    page += FPSTR(HTML_MAIN2);
-	  // Inputs
-    mqtt->each([&](Entry* entry) {
-      if(entry->isOut() && !entry->isInternal()) {
-        page += FPSTR(HTML_INPUT);
-        page.replace("{name}", getName(entry));
-        page.replace("{path}", getRestPath(entry));
-      }
-    });
-
     // Config
     page += FPSTR(HTML_MAIN3);
     page += FPSTR(HTML_CONFIG_HEADER);
     page.replace("{title}", "General");
-    mqtt->get("$config").each([&](Entry* entry) {
+    Entry* config = &mqtt->get("$config");
+    config->each([&](Entry* entry) {
+      if(entry == config) return;
       page += FPSTR(HTML_CONFIG_ENTRY);
-      page.replace("{key}", getName(entry));
+      page.replace("{key}", getName(config, entry));
       page.replace("{value}", entry->getValue());
     });
 
