@@ -81,23 +81,34 @@ class WebPortal {
       }
     });
 
+    // Config
     page += FPSTR(HTML_MAIN3);
+    page += FPSTR(HTML_CONFIG_HEADER);
+    page.replace("{title}", "General");
+    mqtt->get("$config").each([&](Entry* entry) {
+      page += FPSTR(HTML_CONFIG_ENTRY);
+      page.replace("{key}", getName(entry));
+      page.replace("{value}", entry->getValue());
+    });
+
+    // About
+    page += FPSTR(HTML_MAIN4);
     mqtt->each([&](Entry* entry) {
       if(entry->isOut() || entry->isIn()) {
         page += FPSTR(HTML_API_DOC);
         page.replace("{path}", entry->getTopic());
       }
     });
-
-    page += FPSTR(HTML_MAIN4);
+    
+    page += FPSTR(HTML_MAIN5);
     mqtt->each([&](Entry* entry) {
       if(entry->isOut() || entry->isIn()) {
         page += FPSTR(HTML_API_DOC);
         page.replace("{path}", getRestPath(entry));
       }
     });
-    page += FPSTR(HTML_MAIN5);
-    // About
+
+    page += FPSTR(HTML_MAIN6);
     page.replace("{device_id}", mqtt->get("$system")["deviceId"].getValue());
     page.replace("{topic}", mqtt->getTopic());
     webServer->send(200, "text/html", page);
