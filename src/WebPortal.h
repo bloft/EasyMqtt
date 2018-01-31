@@ -36,6 +36,7 @@ class WebPortal {
       mqtt->debug("Setup Web Portal");
       webServer.reset(new ESP8266WebServer(80));
       webServer->on("/", std::bind(&WebPortal::handleRoot, this));
+      webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
       mqtt->each([&](Entry* entry) {
         if(entry->isIn() || entry->isOut()) {
           webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
@@ -76,35 +77,48 @@ class WebPortal {
     });
 
     // Config
-    page += FPSTR(HTML_MAIN3);
+    page += FPSTR(HTML_MAIN2);
     page += FPSTR(HTML_CONFIG_HEADER);
     page.replace("{title}", "General");
     Entry* config = &mqtt->get("$config");
     config->each([&](Entry* entry) {
       if(entry == config) return;
       page += FPSTR(HTML_CONFIG_ENTRY);
-      page.replace("{key}", getName(config, entry));
-      page.replace("{value}", entry->getValue());
+      String name = getName(config, entry);
+      page.replace("{key}", name);
+      if(name.endsWith("password")) {
+        page.replace("{type}", "password");
+        page.replace("{value}", "");
+      } else {
+        page.replace("{type}", "text");
+        page.replace("{value}", entry->getValue());
+      }
     });
 
     // About
+    page += FPSTR(HTML_MAIN3);
+    mqtt->each([&](Entry* entry) {
+      if(entry->isOut() || entry->isIn()) {
+        page += FPSTR(HTML_API_DOC);
+        String path = entry->getTopic();
+        if(entry->isOut()) path += "<span class=\"badge\">Set</span>";
+        if(entry->isIn()) path += "<span class=\"badge\">Get</span>";
+        page.replace("{path}", path);
+      }
+    });
+    
     page += FPSTR(HTML_MAIN4);
     mqtt->each([&](Entry* entry) {
       if(entry->isOut() || entry->isIn()) {
         page += FPSTR(HTML_API_DOC);
-        page.replace("{path}", entry->getTopic());
-      }
-    });
-    
-    page += FPSTR(HTML_MAIN5);
-    mqtt->each([&](Entry* entry) {
-      if(entry->isOut() || entry->isIn()) {
-        page += FPSTR(HTML_API_DOC);
-        page.replace("{path}", getRestPath(entry));
+        String path = getRestPath(entry);
+        if(entry->isOut()) path += "<span class=\"badge\">POST</span>";
+        if(entry->isIn()) path += "<span class=\"badge\">GET</span>";
+        page.replace("{path}", path);
       }
     });
 
-    page += FPSTR(HTML_MAIN6);
+    page += FPSTR(HTML_MAIN5);
     page.replace("{device_id}", mqtt->get("$system")["deviceId"].getValue());
     page.replace("{topic}", mqtt->getTopic());
     webServer->send(200, "text/html", page);
@@ -120,6 +134,22 @@ class WebPortal {
     } else {
       webServer->send(404, "text/plain", "Unsupported");
     }
+  }
+
+  void handleSaveConfig() {
+    Serial.println("Save");
+    mqtt->get("$config").each([&](Entry* entry) {
+      String name = getName(entry);
+      name = name.substring(8);
+      name.replace("/", ".");
+      entry->setValue(webServer->arg(name.c_str()));
+      Serial.print(name);
+      Serial.print(" = ");
+      Serial.println(webServer->arg(name.c_str()));
+    });
+    webServer->sendHeader("Location", String("/"), true);
+    webServer->send(302, "text/plain", "");
+    ESP.restart();
   }
 
   void handleNotFound() {
