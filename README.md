@@ -13,12 +13,16 @@ void setup() {
   // Setup wifi
   mqtt.wifi("ssid", "password");
   mqtt.mqtt("host", 1883, "user", "pass");
+  
+  mqtt.config().setString("foo", "My Foo");
 
-	mqtt["foo"] << [](){ return String("bar"); };
+  mqtt["foo"] << [](){
+    return mqtt.config().getString("foo");
+  };
 }
 
 void loop() {
-	mqtt.loop();
+  mqtt.loop();
 }
 
 ```
