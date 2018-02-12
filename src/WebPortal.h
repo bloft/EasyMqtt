@@ -54,14 +54,6 @@ class WebPortal {
       if(!entry->isInternal()) {
         String value = entry->getValue();
         if(value != NULL) {
-          value.toLowerCase();
-          if(value == "on" || value == "open" || value == "true") {
-            value = FPSTR(HTML_VALUE_ON);
-          } else if (value == "off" || value == "closed" || value == "false") {
-            value = FPSTR(HTML_VALUE_OFF);
-          } else {
-            value = "{value}";
-          }
           value.replace("{value}", entry->getValue());
 
           page += FPSTR(HTML_SENSOR);

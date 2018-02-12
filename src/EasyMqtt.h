@@ -181,6 +181,8 @@ class EasyMqtt : public Entry {
        Deprecated
     */
     void wifi(const char* ssid, const char* password) {
+      config().getString("wifi_ssid", ssid);
+      config().getString("wifi_password", password);
 			wifi_ssid = ssid;
 			wifi_password = password;
     }
@@ -190,6 +192,10 @@ class EasyMqtt : public Entry {
        Deprecated
     */
     void mqtt(const char* host, int port, const char* username, const char* password) {
+      config().getString("mqtt_host", host);
+      config().getString("mqtt_port", host);
+      config().getString("mqtt_username", username);
+      config().getString("mqtt_password", password);
 			mqtt_host = host;
 			mqtt_port = port;
 			mqtt_username = username;

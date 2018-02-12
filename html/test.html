@@ -101,6 +101,26 @@
               </div>
 <!-- split:sensor -->
 
+<!-- split:input -->
+              <div class="col-md-6">
+                <div class="panel panel-success">
+                  <div class="panel-heading"><strong>{name}</strong></div>
+                  <div class="panel-body" style="font-size: 24px;">
+                    <form>
+                      <div class="input-group">
+                        <input type="text" class="form-control" placeholder="value">
+                        <span class="input-group-btn">
+                          <button class="btn btn-default" type="button" data-url="{path}" onclick="sendValue(this);">
+                            Send
+                          </button>
+                        </span>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+<!-- split:input -->
+
 	    	      <div class="col-md-6">
                 <div class="panel panel-info" id="temperature" style="box-shadow: 1px 1px 5px #555;" data-ajaxurl="test2">
                   <div class="panel-heading">
