@@ -1,8 +1,8 @@
 #!/usr/bin/php
 <?php
 
-//generateC("template.html", "../src/html.h");
-generateC("test.html", "../src/html.h");
+generateC("template.html", "../src/html.h");
+//generateC("test.html", "../src/html.h");
 
 function generateC($input, $output) {
   $html = file_get_contents($input);
