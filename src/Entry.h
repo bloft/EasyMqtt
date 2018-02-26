@@ -22,261 +22,91 @@ class Entry {
     Entry* next = NULL;
     Entry* children = NULL;
 
-    void setName(const char* name) {
-      Entry::name = (char*)malloc(strlen(name)+1);
-      strncpy(Entry::name, name, strlen(name)+1);
-    }
-    
-    std::function<void(Entry*, String)> getPublishFunction() {
-      if(publishFunction == NULL && parent) {
-        return parent->getPublishFunction();
-      }
-      return publishFunction;
-    }
+    void setName(const char* name);
+    std::function<void(Entry*, String)> getPublishFunction();
 
   protected:
-    Entry(const char* name) {
-      setName(name);
-    }
-
-    Entry *getOrCreate(const char* name) {
-      Entry *child = children;
-      while (child != NULL) {
-        if (strcmp(child->name, name) == 0) {
-          return child;
-        }
-        child = child->next;
-      }
-      return addChild(new Entry(name));
-    }
-
-    Entry *getRoot() {
-      if(parent) {
-        return parent->getRoot();
-      } else {
-        return this;
-      }
-    }
-
-    Entry *getParent() {
-      return parent;
-    }
-
-    Entry *setParent(Entry& parent) {
-      Entry::parent = &parent;
-      return this;
-    }
-
-    Entry* addChild(Entry* child) {
-      child->parent = this;
-      child->next = children;
-      children = child;
-      return child;
-    }
-
-    void setPublishFunction(std::function<void(Entry*, String)> function) {
-      publishFunction = function;
-    }
+    Entry(const char* name);
+    Entry *getOrCreate(const char* name);
+    Entry *getRoot();
+    Entry *getParent();
+    Entry *setParent(Entry& parent);
+    Entry* addChild(Entry* child);
+    void setPublishFunction(std::function<void(Entry*, String)> function);
     
   public:
-    void debug(String key, bool value) {
-      debug(key + " = " + (value ? "true" : "false"));
-    }
+    void debug(String key, bool value);
+    void debug(String key, int value);
+    void debug(String key, String value);
+    void debug(String msg);
 
-    void debug(String key, int value) {
-      debug(key + " = " + value);
-    }
-
-    void debug(String key, String value) {
-      debug(key + " = " + value);
-    }
-
-    void debug(String msg) {
-      #ifdef DEBUG
-        Serial.println(msg);
-      #endif
-      getRoot()->get("$system")["debug"].publish(msg);
-    }
-
-    void callback(const char* topic, uint8_t* payload, unsigned int length) {
-      if (strcmp(getTopic().c_str(), topic) == 0) {
-        String _payload = "";
-        for (int i = 0; i < length; i++) {
-          _payload += (char)payload[i];
-        }
-        if(!isIn() || _payload != getValue()) {
-          update(_payload);
-        }
-      }
-    }
+    void callback(const char* topic, uint8_t* payload, unsigned int length);
     
     /**
      * Request a updated value if needed
      */
-    void update() {
-      if (isIn()) {
-        unsigned long time = millis();
-        if (time >= (lastUpdate + (getInterval() * 1000)) || lastUpdate == 0) {
-          force++;
-          lastUpdate = time;
-          String value = inFunction();
-          if (value != "") {
-            if (value != getValue() || force > getForce()) {
-              setValue(value);
-              force = 0;
-            }
-          }
-        }
-      }
-    }
+    void update();
+    void update(String payload);
 
-    void update(String payload) {
-        if (isOut()) {
-          outFunction(payload);
-        }
-    }
+    bool isIn();
+    bool isOut();
+    bool isRoot();
+    bool isInternal();
 
-    bool isIn() {
-      return inFunction != NULL;
-    }
+    virtual String getTopic();
 
-    bool isOut() {
-      return outFunction != NULL;
-    }
+    int getInterval();
+    void setInterval(int interval);
+    void setInterval(int interval, int force);
 
-    bool isRoot() {
-      return parent == NULL;
-    }
-
-    bool isInternal() {
-      bool internal = name[0] == '$';
-      if (parent) {
-        return internal || parent->isInternal();
-      } else {
-        return internal;
-      }
-    }
-
-    virtual String getTopic() {
-      if (parent) {
-        return parent->getTopic() + "/" + name;
-      } else {
-        return String(name);
-      }
-    }
-
-    int getInterval() {
-      if (interval < 0) {
-        return parent->getInterval();
-      }
-      return interval;
-    }
-
-    void setInterval(int interval) {
-      this->interval = interval;
-    }
-
-    void setInterval(int interval, int force) {
-      this->interval = interval;
-      forceUpdate = force;
-    }
-
-    int getForce() {
-      if(forceUpdate < 0) {
-        return parent->getForce();
-      }
-      return forceUpdate;
-    }
+    int getForce();
 
     /**
      * Get last value
      */
-    String getValue() {
-      return lastValue;
-    }
-
-    const char* getCValue() {
-      return lastValue.c_str();
-    }
-
-    void setValue(String value) {
-      lastUpdate = millis();
-      lastValue = value;
-      publish(value);
-    }
+    String getValue();
+    const char* getCValue();
+    void setValue(String value);
 
     /**
      * 
      */
-    long getLastUpdate() {
-      return lastUpdate;
-    }
+    long getLastUpdate();
 
     /**
      * Publish value to mqtt
      */
-    void publish(String message) {
-      auto function = getPublishFunction();
-      if(function) {
-        function(this, message);
-      }
-    }
+    void publish(String message);
     
     /**
      * Iterate over each child, including sub children
      */
-    void each(std::function<void(Entry*)> f) {
-      f(this);
-      Entry* child = children;
-      while (child != NULL) {
-        child->each(f);
-        child = child->next;
-      }
-    }
+    void each(std::function<void(Entry*)> f);
 
     /**
      * Create or get the sub topic with the name {name}
      */
-    Entry & get(const char* name) {
-      char *subName = strtok((char *)name, "/");
-      Entry *entry = this;
-      while(subName != NULL) {
-        entry = entry->getOrCreate(subName);
-        subName = strtok(NULL, "/");
-      }
-      return *entry;
-    }
+    Entry & get(const char* name);
 
     /**
      * Create or get the sub topic with the name {name}
      */
-    Entry & operator[](int index) {
-      int numOfDigits = log10(index) + 1;
-      char* arr = (char*)calloc(numOfDigits, sizeof(char));
-      itoa(index, arr, 10);
-      return *getOrCreate(arr);
-    }
+    Entry & operator[](int index);
 
     /**
      * Create or get the sub topic with the name {name}
      */
-    Entry & operator[](const char* name) {
-      return *getOrCreate(name);
-    }
+    Entry & operator[](const char* name);
 
     /**
      *  Read data from function and send it to mqtt
      */
-    void operator<<(std::function<String()> inFunction) {
-      Entry::inFunction = inFunction;
-    }
+    void operator<<(std::function<String()> inFunction);
 
     /**
      *  Handle data comming from mqtt
      */
-    void operator>>(std::function<void(String payload)> outFunction) {
-      Entry::outFunction = outFunction;
-    }
+    void operator>>(std::function<void(String payload)> outFunction);
 };
 
 #endif

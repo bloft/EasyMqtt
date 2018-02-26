@@ -1,7 +1,10 @@
 # EasyMqtt
 Easy handling of Mqtt on esp8266
 
-Including a web interface to se current values, and avalible topic, and a rest api
+* Easy wifi configuration
+* Easy mqtt configuration
+* Easy configuration of mqtt endpoints
+* Web based UI to see current values
 
 ## Examble usage EasyMqtt
 ```C++
