@@ -8,7 +8,7 @@ const char HTML_VALUE_ON[] PROGMEM = "<span class=\"label label-success\">{value
 const char HTML_VALUE_OFF[] PROGMEM = "<span class=\"label label-danger\">{value}</span>";
 const char HTML_MAIN2[] PROGMEM = "</div></div></div><div role=\"tabpanel\" class=\"tab-pane\" id=\"config\"><div class=\"container-fluid\"><div class=\"row\"><div class=\"col-md-12\"><form class=\"form-horizontal\" action=\"/save\" method=\"POST\">";
 const char HTML_CONFIG_HEADER[] PROGMEM = "<br /><h3>{title}</h3><hr/>";
-const char HTML_CONFIG_ENTRY[] PROGMEM = "<div class=\"form-group\"><label for=\"{key}\" class=\"col-sm-2 control-label\">{key}</label><div class=\"col-sm-8\"><input type=\"{type}\" class=\"form-control\" id=\"{key}\" placeholder=\"\" value=\"{value}\"></div></div>";
+const char HTML_CONFIG_ENTRY[] PROGMEM = "<div class=\"form-group\"><label for=\"{key}\" class=\"col-sm-2 control-label\">{key}</label><div class=\"col-sm-8\"><input type=\"{type}\" class=\"form-control\" name=\"{key}\" placeholder=\"\" value=\"{value}\"></div></div>";
 const char HTML_MAIN3[] PROGMEM = "<hr/><div class=\"form-group\"><div class=\"col-sm-offset-9 col-sm-2\"><button type=\"submit\" class=\"btn btn-default\">Save</button></div></div></form></div></div></div></div><div role=\"tabpanel\" class=\"tab-pane\" id=\"about\"><br /><div class=\"container-fluid\"><div class=\"row\"><div class=\"col-md-12\"><h1>About</h1><p>Device is using EasyMqtt version 0.3</p><dl class=\"dl-horizontal\"><dt>Device Id</dt><dd>{device_id}</dd><dt>Topic</dt><dd>{topic}</dd></dl><hr /><h3>MQTT API:</h3><ul class=\"list-group\">";
 const char HTML_MAIN4[] PROGMEM = "</ul><hr /><h3>Rest API:</h3><ul class=\"list-group\">";
 const char HTML_API_DOC[] PROGMEM = "<li class=\"list-group-item\">{path}</li>";
