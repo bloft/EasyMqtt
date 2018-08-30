@@ -5,7 +5,12 @@ generateC("template.html", "../src/html.h");
 //generateC("test.html", "../src/html.h");
 
 function generateC($input, $output) {
+  $library = json_decode(file_get_contents("../library.json"), true);
+
   $html = file_get_contents($input);
+  $html = str_replace("{version}", $library['version'], $html);
+  $html = str_replace("{easymqtt.url}", $library['repository']['url'], $html);
+
   $pattern = "|<!-- split:(.*) -->|U";
 
   preg_match_all($pattern, $html, $matches, PREG_SET_ORDER);
