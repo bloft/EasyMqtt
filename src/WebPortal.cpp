@@ -143,3 +143,19 @@ void WebPortal::handleNotFound() {
 void WebPortal::loop() {
   webServer->handleClient();
 }
+
+String WebPortal::time(long time, float utcOffset) {
+  long localTime = round(time + 3600 * utcOffset + 86400L) % 86400L;
+  int hours = ((localTime  % 86400L) / 3600) % 24;
+  int minutes = ((localTime % 3600) / 60);
+  int seconds = localTime % 60;
+  
+  String output = "";
+  if(hours < 10) output += "0";
+  output += hours + ":";
+  if(minutes < 10) output += "0";
+  output += minutes + ":";
+  if(seconds < 10) output += "0";
+  output += seconds;
+  return output;
+}

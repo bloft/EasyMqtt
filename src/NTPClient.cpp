@@ -1,7 +1,6 @@
 #include "NTPClient.h"
 
-NTPClient::NTPClient(float utcOffset) {
-  this->utcOffset = utcOffset;
+NTPClient::NTPClient() {
 }
 
 void NTPClient::update() {
@@ -47,48 +46,10 @@ void NTPClient::update() {
   }
 }
 
-String NTPClient::getHours() {
-    if (localEpoc == 0) {
-      return "--";
-    }
-    int hours = ((getTime()  % 86400L) / 3600) % 24;
-    if (hours < 10) {
-      return "0" + String(hours);
-    }
-    return String(hours); // print the hour (86400 equals secs per day)
-
-}
-String NTPClient::getMinutes() {
-    if (localEpoc == 0) {
-      return "--";
-    }
-    int minutes = ((getTime() % 3600) / 60);
-    if (minutes < 10 ) {
-      // In the first 10 minutes of each hour, we'll want a leading '0'
-      return "0" + String(minutes);
-    }
-    return String(minutes);
-}
-String NTPClient::getSeconds() {
-    if (localEpoc == 0) {
-      return "--";
-    }
-    int seconds = getTime() % 60;
-    if ( seconds < 10 ) {
-      // In the first 10 seconds of each minute, we'll want a leading '0'
-      return "0" + String(seconds);
-    }
-    return String(seconds);
-}
-
-String NTPClient::toString() {
-  return getHours() + ":" + getMinutes() + ":" + getSeconds();
-}
-
-long NTPClient::getUtcTime() {
-  return localEpoc + ((millis() - localMillisAtUpdate) / 1000);
-}
-
 long NTPClient::getTime() {
-  return round(getUtcTime() + 3600 * utcOffset + 86400L) % 86400L;
+  return getTime(millis());
+}
+
+long NTPClient::getTime(long millis) {
+  return localEpoc + ((millis - localMillisAtUpdate) / 1000);
 }

@@ -16,7 +16,7 @@ class EasyMqtt : public Entry {
 
     ConfigEntry* configEntry;
 
-    NTPClient* ntp;
+    NTPClient* ntpClient;
 
     String deviceId = "deviceId";
     long mqttDelay = 0;
@@ -49,6 +49,8 @@ class EasyMqtt : public Entry {
     virtual String getTopic();
 
     ConfigEntry & config();
+
+    NTPClient & ntp();
 
     /**
        Configure wifi

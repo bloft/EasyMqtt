@@ -18,6 +18,8 @@ class WebPortal {
 
     String getRestPath(Entry* entry);
 
+    String time(long time, float utcOffset);
+
   public:
     WebPortal();
 

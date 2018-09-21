@@ -6,7 +6,6 @@
 
 class NTPClient {
   private:
-    float utcOffset = 0;
     long localEpoc = 0;
     long localMillisAtUpdate;
     const char* ntpServerName = "www.google.com";
@@ -14,15 +13,8 @@ class NTPClient {
     byte packetBuffer[ NTP_PACKET_SIZE];
 
   public:
-    NTPClient(float utcOffset);
+    NTPClient();
     void update();
-
-    long getUtcTime();
     long getTime();
-
-    String toString();
-
-    String getHours();
-    String getMinutes();
-    String getSeconds();
+    long getTime(long millis);
 };
