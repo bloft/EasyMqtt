@@ -6,6 +6,7 @@
 #include "Entry.h"
 #include "ConfigEntry.h"
 #include "WebPortal.h"
+#include "NTPClient.h"
 
 class EasyMqtt : public Entry {
   private:
@@ -14,6 +15,8 @@ class EasyMqtt : public Entry {
     WebPortal webPortal;
 
     ConfigEntry* configEntry;
+
+    NTPClient* ntp;
 
     String deviceId = "deviceId";
     long mqttDelay = 0;

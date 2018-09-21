@@ -17,6 +17,7 @@ class ConfigEntry : public Entry {
     void reset();
     String getString(const char *key, const char *defaultValue);
     void setString(const char *key, const char *value);
+    int getInt(const char *key, int defaultValue);
 };
 
 #endif

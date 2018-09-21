@@ -56,6 +56,12 @@ void ConfigEntry::reset() {
   // ToDo: Remove all child entries (children = NULL;)
 }
 
+int ConfigEntry::getInt(const char *key, int defaultValue) {
+  char cstr[16];
+  itoa(defaultValue, cstr, 10);
+  return getString(key, cstr).toInt();
+}
+
 String ConfigEntry::getString(const char *key, const char *defaultValue) {
   String value = get(key).getValue();
   if(value == "") {

@@ -102,6 +102,8 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
 
   deviceId = configEntry->getString("device.name", String(ESP.getChipId()).c_str());
 
+  ntp = new NTPClient(configEntry->getInt("time.offset", 2));
+
   setInterval(60, 10);
 
   get("$system").setInterval(300);
@@ -131,6 +133,10 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   };
   get("$system")["online"] << []() {
     return "ON";
+  };
+  get("$system")["time"] << [this]() {
+    ntp->update();
+    return String(ntp->getTime());
   };
 
   get("$system")["restart"] >> [this](String value) {
