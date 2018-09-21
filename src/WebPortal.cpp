@@ -46,10 +46,10 @@ void WebPortal::handleRoot() {
 
       page += FPSTR(HTML_SENSOR);
       page.replace("{value}", value);
-      page.replace("{last_updated}", String(entry->getLastUpdate() / 1000));
+      page.replace("{last_updated}", time(entry->getLastUpdate(), 2));
       }
       if(entry->isOut()) {
-      page += FPSTR(HTML_INPUT);
+        page += FPSTR(HTML_INPUT);
       }
       page.replace("{name}", getName(entry));
       page.replace("{path}", getRestPath(entry));
