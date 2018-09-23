@@ -1,5 +1,4 @@
-#ifndef Entry_h
-#define Entry_h
+#pragma once
 
 #include <functional>
 #include <Arduino.h>
@@ -108,5 +107,3 @@ class Entry {
      */
     void operator>>(std::function<void(String payload)> outFunction);
 };
-
-#endif

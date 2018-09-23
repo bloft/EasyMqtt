@@ -1,5 +1,4 @@
-#ifndef ConfigEntry_h
-#define ConfigEntry_h
+#pragma once
 
 #include "FS.h" // for SPIFFS
 #include "Entry.h"
@@ -19,5 +18,3 @@ class ConfigEntry : public Entry {
     void setString(const char *key, const char *value);
     int getInt(const char *key, int defaultValue);
 };
-
-#endif

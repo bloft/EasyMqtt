@@ -1,5 +1,4 @@
-#ifndef WebPortal_h
-#define WebPortal_h
+#pragma once
 
 #include <ESP8266WebServer.h>
 #include "Entry.h"
@@ -32,5 +31,3 @@ class WebPortal {
 
     void loop();
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef EasyMqtt_h
-#define EasyMqtt_h
+#pragma once
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
@@ -69,5 +68,3 @@ class EasyMqtt : public Entry {
     */
     void loop();
 };
-
-#endif

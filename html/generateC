@@ -25,15 +25,12 @@ function generateC($input, $output) {
   } 
 
   $fp = fopen($output, "w");
-  fputs($fp, "#ifndef html_h\n");
-  fputs($fp, "#define html_h\n");
+  fputs($fp, "#pragma once\n");
   fputs($fp, "\n");
   foreach($tmp as $header => $content) {
     $header = strtoupper($header);
     fputs ($fp, "const char HTML_${header}[] PROGMEM = \"$content\";\n");
   }
-  fputs($fp, "\n");
-  fputs($fp, "#endif\n");
   fclose ($fp);
 }
 
