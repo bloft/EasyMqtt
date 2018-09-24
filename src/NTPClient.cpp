@@ -1,49 +1,49 @@
 #include "NTPClient.h"
+#include <WiFiUdp.h>
+
+// https://playground.arduino.cc/Code/NTPclient
 
 NTPClient::NTPClient() {
+  WiFiUDP ntp();
+  this->udp.begin(123);
 }
 
 void NTPClient::update() {
-  WiFiClient client;
+  this->sendNTPPacket();
+  byte timeout = 0;
+  int cb = 0;
+  do {
+    delay ( 10 );
+    cb = this->udp.parsePacket();
+    if (timeout > 100) return;
+    timeout++;
+  } while (cb == 0);
 
-  if (!client.connect(ntpServerName, httpPort)) {
-    Serial.println("Failed to connecto to NTP server");
-    return;
-  }
+  localMillisAtUpdate = millis() - (10 * (timeout + 1));
+  this->udp.read(this->packetBuffer, NTP_PACKET_SIZE);
 
-  client.print(String("GET / HTTP/1.1\r\n") +
-      String("Host: www.google.com\r\n") +
-      String("Connection: close\r\n\r\n"));
+  unsigned long highWord = word(this->packetBuffer[40], this->packetBuffer[41]);
+  unsigned long lowWord = word(this->packetBuffer[42], this->packetBuffer[43]);
 
-  int repeatCounter = 0;
-  while(!client.available() && repeatCounter < 10) {
-    delay(1000);
-    Serial.println(".");
-    repeatCounter++;
-  }
+  unsigned long secsSince1900 = highWord << 16 | lowWord;
 
-  String line;
+  localEpoc = secsSince1900 - SEVENZYYEARS;
+}
 
-  int size = 0;
-  client.setNoDelay(false);
-  while(client.connected()) {
-    while((size = client.available()) > 0) {
-			line = client.readStringUntil('\n');
-      line.toUpperCase();
-      // date: Thu, 19 Nov 2015 20:25:40 GMT
-      if (line.startsWith("DATE: ")) {
-        int parsedHours = line.substring(23, 25).toInt();
-        int parsedMinutes = line.substring(26, 28).toInt();
-        int parsedSeconds = line.substring(29, 31).toInt();
-        Serial.println(String(parsedHours) + ":" + String(parsedMinutes) + ":" + String(parsedSeconds));
+void NTPClient::sendNTPPacket() {
+  memset(this->packetBuffer, 0, NTP_PACKET_SIZE);
+  this->packetBuffer[0] = 0b11100011;
+  this->packetBuffer[1] = 0;
+  this->packetBuffer[2] = 6;
+  this->packetBuffer[3] = 0xEC;
+  this->packetBuffer[12]  = 49;
+  this->packetBuffer[13]  = 0x4E;
+  this->packetBuffer[14]  = 49;
+  this->packetBuffer[15]  = 52;
 
-        localEpoc = (parsedHours * 60 * 60 + parsedMinutes * 60 + parsedSeconds);
-        Serial.println(localEpoc);
-        localMillisAtUpdate = millis();
-        client.stop();
-      }
-    }
-  }
+  this->udp.beginPacket(this->ntpServerName, 123);
+  this->udp.write(this->packetBuffer, NTP_PACKET_SIZE);
+  this->udp.endPacket();
 }
 
 long NTPClient::getTime() {
