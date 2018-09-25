@@ -64,7 +64,7 @@ void EasyMqtt::connectMqtt() {
 
     mqttClient.setServer(mqtt_host, mqtt_port);
 
-    if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password), get("$system")["online"].getTopic().c_str(), 0, 1, "OFF") {
+    if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password), get("$system")["online"].getTopic().c_str(), 1, 1, "OFF") {
       debug("Connected to MQTT");
 
       setPublishFunction([&](Entry* entry, String message){
