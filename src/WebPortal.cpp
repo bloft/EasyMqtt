@@ -149,13 +149,9 @@ String WebPortal::time(long time, float utcOffset) {
   int hours = ((localTime  % 86400L) / 3600) % 24;
   int minutes = ((localTime % 3600) / 60);
   int seconds = localTime % 60;
-  
-  String output = "";
-  if(hours < 10) output += "0";
-  output += hours + ":";
-  if(minutes < 10) output += "0";
-  output += minutes + ":";
-  if(seconds < 10) output += "0";
-  output += seconds;
-  return output;
+ 
+  char formated[9];
+  snprintf(formated, sizeof(formated), "%02d:%02d:%02d", hours, minutes, seconds);
+
+  return String(formated);
 }

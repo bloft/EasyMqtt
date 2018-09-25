@@ -19,7 +19,7 @@ void NTPClient::update() {
     timeout++;
   } while (cb == 0);
 
-  localMillisAtUpdate = millis() - (10 * (timeout + 1));
+  localMillisAtUpdate = millis() - (10 * ((timeout + 1) / 2));
   this->udp.read(this->packetBuffer, NTP_PACKET_SIZE);
 
   unsigned long highWord = word(this->packetBuffer[40], this->packetBuffer[41]);
