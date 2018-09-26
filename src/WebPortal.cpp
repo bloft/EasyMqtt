@@ -18,8 +18,9 @@ String WebPortal::getRestPath(Entry* entry) {
 WebPortal::WebPortal() {
 }
 
-void WebPortal::setup(Entry& mqttEntry, ConfigEntry& config) {
+void WebPortal::setup(Entry& mqttEntry, ConfigEntry& config, NTPClient& ntpClient) {
   mqtt = &mqttEntry;
+  ntp = &ntpClient;
   config = config;
   mqtt->debug("Setup Web Portal");
   webServer.reset(new ESP8266WebServer(80));
@@ -145,7 +146,7 @@ void WebPortal::loop() {
 }
 
 String WebPortal::time(long time, float utcOffset) {
-  long localTime = round(time + 3600 * utcOffset + 86400L) % 86400L;
+  long localTime = round(ntp->getTime(time) + 3600 * utcOffset + 86400L) % 86400L;
   int hours = ((localTime  % 86400L) / 3600) % 24;
   int minutes = ((localTime % 3600) / 60);
   int seconds = localTime % 60;

@@ -36,7 +36,7 @@ void EasyMqtt::connectWiFi() {
       debug("IP address", WiFi.softAPIP().toString());
     }
     debug("devideId", deviceId);
-    webPortal.setup(*this, config());
+    webPortal.setup(*this, config(), ntp());
   }
 }
 
