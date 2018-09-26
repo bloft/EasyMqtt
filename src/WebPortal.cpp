@@ -47,7 +47,7 @@ void WebPortal::handleRoot() {
 
       page += FPSTR(HTML_SENSOR);
       page.replace("{value}", value);
-      page.replace("{last_updated}", time(entry->getLastUpdate(), 2));
+      page.replace("{last_updated}", time(entry->getLastUpdate()));
       }
       if(entry->isOut()) {
         page += FPSTR(HTML_INPUT);
@@ -145,12 +145,19 @@ void WebPortal::loop() {
   webServer->handleClient();
 }
 
-String WebPortal::time(long time, float utcOffset) {
-  long localTime = round(ntp->getTime(time) + 3600 * utcOffset + 86400L) % 86400L;
-  int hours = ((localTime  % 86400L) / 3600) % 24;
-  int minutes = ((localTime % 3600) / 60);
+String WebPortal::time(long time) {
+  float utcOffset = config->getInt("time.offset", 2);
+
+  long localTime = round(ntp->getTime(time) + 3600 * utcOffset);
+  
   int seconds = localTime % 60;
- 
+  localTime /= 60;
+  int minutes = localTime % 60;
+  localTime /= 60;
+  int hours = localTime % 24;
+  localTime /= 24;
+  int wDay = ((time + 4) % 7) + 1; // Sunday is day 1 
+
   char formated[9];
   snprintf(formated, sizeof(formated), "%02d:%02d:%02d", hours, minutes, seconds);
 

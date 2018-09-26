@@ -19,7 +19,7 @@ class WebPortal {
 
     String getRestPath(Entry* entry);
 
-    String time(long time, float utcOffset);
+    String time(long time);
 
   public:
     WebPortal();
