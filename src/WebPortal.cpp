@@ -146,7 +146,7 @@ void WebPortal::loop() {
 }
 
 String WebPortal::time(long time) {
-  float utcOffset = config->getInt("time.offset", 2);
+  float utcOffset = 2;
 
   long localTime = round(ntp->getTime(time) + 3600 * utcOffset);
   
@@ -155,8 +155,6 @@ String WebPortal::time(long time) {
   int minutes = localTime % 60;
   localTime /= 60;
   int hours = localTime % 24;
-  localTime /= 24;
-  int wDay = ((time + 4) % 7) + 1; // Sunday is day 1 
 
   char formated[9];
   snprintf(formated, sizeof(formated), "%02d:%02d:%02d", hours, minutes, seconds);
