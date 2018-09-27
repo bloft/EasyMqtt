@@ -42,16 +42,19 @@
     }
     setInterval(function() {
       $("[data-ajaxurl]").each(function(index) {
+        console.log("test");
         var ele = $(this);
-        $.ajax(ele.data("ajaxurl")).success(function (data) {
-          if(data.toUpperCase() == "OPEN") {
-            ele.html("<span class=\"label label-success\">" + data + "</span>");
-          } else if(data.toUpperCase() == "CLOSE") {
-            ele.html("<span class=\"label label-danger\">" + data + "</span>");
-          } else {
-            ele.html(data);
-          }
-        });
+        $.getJSON( ele.data("ajaxurl"), function (data) {
+          console.log(data.value);
+          var eleValue =  ele.find(".panel-body")[0];
+          if(data.value.toUpperCase() == "OPEN") {
+            eleValue.html("<span class=\"label label-success\">" + data.value + "</span>");
+          } else if(data.value.toUpperCase() == "CLOSE") {
+            eleValue.html("<span class=\"label label-danger\">" + data.value + "</span>");
+           } else {
+            eleValue.html(data.value);
+           }
+         });
       });
     }, 1000);
   </script>
@@ -91,16 +94,16 @@
 
 <!-- split:sensor -->
 	    	      <div class="col-md-4">
-                <div class="panel panel-info">
+                <div class="panel panel-info" data-ajaxurl="{path}">
                   <div class="panel-heading">
                     <strong>
                       {name}
                     </strong>
                   </div>
-                  <div class="panel-body" data-ajaxurl="{path}" style="font-size: 24px;">
+                  <div class="panel-body" style="font-size: 24px;">
                     {value}
                   </div>
-                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> {last_updated}</div> 
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> <span>{last_updated}</span></div> 
                 </div>
               </div>
 <!-- split:sensor -->
@@ -129,7 +132,7 @@
                 <div class="panel panel-default">
                   <div class="panel-heading" style="background-image: linear-gradient(to bottom,#444 0,#aaa 100%); color: #fff;"><strong>{name}</strong></div>
                   <ul class="list-group">
-                    <li class="list-group-item" style="font-size: 24px;" data-ajaxurl="{path}">
+                    <li class="list-group-item" style="font-size: 24px;">
                       {value}
                     </li>
                     <li class="list-group-item">

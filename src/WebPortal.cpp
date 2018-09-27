@@ -108,7 +108,7 @@ void WebPortal::handleRoot() {
 void WebPortal::handleRest() {
   Entry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
   if(webServer->method() == HTTP_GET && entry->isIn()) {
-    webServer->send(200, "text/plain", entry->getValue());
+    webServer->send(200, "application/json", "{\"value\":\"" + entry->getValue() + "\",\"updated\":\"" + time(entry->getLastUpdate()) + "\"}");
   } else if(webServer->method() == HTTP_POST && entry->isOut()) {
     entry->update(webServer->arg("plain"));
     webServer->send(200, "text/plain", webServer->uri() + " Update");
