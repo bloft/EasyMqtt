@@ -149,7 +149,7 @@ String WebPortal::time(long time) {
   float utcOffset = 2;
 
   long localTime = round(ntp->getTime(time) + 3600 * utcOffset);
-  
+
   int seconds = localTime % 60;
   localTime /= 60;
   int minutes = localTime % 60;

@@ -42,11 +42,9 @@
     }
     setInterval(function() {
       $("[data-ajaxurl]").each(function(index) {
-        console.log("test");
         var ele = $(this);
         $.getJSON( ele.data("ajaxurl"), function (data) {
-          console.log(data.value);
-          var eleValue =  ele.find(".panel-body")[0];
+          var eleValue =  $(ele.find(".panel-body")[0]);
           if(data.value.toUpperCase() == "OPEN") {
             eleValue.html("<span class=\"label label-success\">" + data.value + "</span>");
           } else if(data.value.toUpperCase() == "CLOSE") {
@@ -54,6 +52,8 @@
            } else {
             eleValue.html(data.value);
            }
+          var eleTime = $(ele.find(".panel-footer span")[0]);
+          eleTime.html(data.updated);
          });
       });
     }, 1000);
