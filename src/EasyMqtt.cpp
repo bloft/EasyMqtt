@@ -106,7 +106,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
 
   setInterval(60, 10);
 
-  get("$system").setInterval(300);
+  get("$system").setInterval(300); // every 5 min
   get("$system")["deviceId"] << [this]() {
     return deviceId;
   };
@@ -134,6 +134,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["online"] << []() {
     return "ON";
   };
+  get("$system")["time"].setInterval(900); // every 15 min
   get("$system")["time"] << [this]() {
     ntp().update();
     return String(ntp().getTime());
@@ -146,6 +147,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
       ESP.restart();
     }
   };
+
   get("$system")["reset"] >> [this](String value) {
     if(value == "reset") {
       debug("Factory Reset");

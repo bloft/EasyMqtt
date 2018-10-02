@@ -36,26 +36,30 @@ void WebPortal::setup(Entry& mqttEntry, ConfigEntry& config, NTPClient& ntpClien
 }
 
 void WebPortal::handleRoot() {
+ if(!auth()) return;
   String page = "";
   page += FPSTR(HTML_MAIN1);
   // Sensors
   mqtt->each([&](Entry* entry) {
-      if(!entry->isInternal()) {
-      String value = entry->getValue();
-      if(value != NULL) {
-      value.replace("{value}", entry->getValue());
-
-      page += FPSTR(HTML_SENSOR);
-      page.replace("{value}", value);
-      page.replace("{last_updated}", time(entry->getLastUpdate()));
+      if(!entry->isInternal() || webServer->arg("show").equals("all")) {
+         String value = entry->getValue();
+         if(value != NULL) {
+            page += FPSTR(HTML_SENSOR);
+            if(getName(entry).endsWith("password")) {
+                page.replace("{value}", "***");
+            } else {
+                value.replace("{value}", entry->getValue());
+                page.replace("{value}", value);
+            }
+            page.replace("{last_updated}", time(entry->getLastUpdate()));
+         }
+         if(entry->isOut()) {
+            page += FPSTR(HTML_INPUT);
+         }
+         page.replace("{name}", getName(entry));
+         page.replace("{path}", getRestPath(entry));
       }
-      if(entry->isOut()) {
-        page += FPSTR(HTML_INPUT);
-      }
-      page.replace("{name}", getName(entry));
-      page.replace("{path}", getRestPath(entry));
-      }
-      });
+  });
 
   // Config
   page += FPSTR(HTML_MAIN2);
@@ -68,36 +72,36 @@ void WebPortal::handleRoot() {
       String name = getName(config, entry).substring(1);
       page.replace("{key}", name);
       if(name.endsWith("password")) {
-      page.replace("{type}", "password");
-      page.replace("{value}", "");
+          page.replace("{type}", "password");
+          page.replace("{value}", "");
       } else {
-      page.replace("{type}", "text");
-      page.replace("{value}", entry->getValue());
+          page.replace("{type}", "text");
+          page.replace("{value}", entry->getValue());
       }
-      });
+  });
 
   // About
   page += FPSTR(HTML_MAIN3);
   mqtt->each([&](Entry* entry) {
       if(entry->isOut() || entry->isIn()) {
-      page += FPSTR(HTML_API_DOC);
-      String path = entry->getTopic();
-      if(entry->isOut()) path += "<span class=\"badge\">Set</span>";
-      if(entry->isIn()) path += "<span class=\"badge\">Get</span>";
-      page.replace("{path}", path);
+          page += FPSTR(HTML_API_DOC);
+          String path = entry->getTopic();
+          if(entry->isOut()) path += "<span class=\"badge\">Set</span>";
+          if(entry->isIn()) path += "<span class=\"badge\">Get</span>";
+          page.replace("{path}", path);
       }
-      });
+  });
 
   page += FPSTR(HTML_MAIN4);
   mqtt->each([&](Entry* entry) {
       if(entry->isOut() || entry->isIn()) {
-      page += FPSTR(HTML_API_DOC);
-      String path = getRestPath(entry);
-      if(entry->isOut()) path += "<span class=\"badge\">POST</span>";
-      if(entry->isIn()) path += "<span class=\"badge\">GET</span>";
-      page.replace("{path}", path);
+          page += FPSTR(HTML_API_DOC);
+          String path = getRestPath(entry);
+          if(entry->isOut()) path += "<span class=\"badge\">POST</span>";
+          if(entry->isIn()) path += "<span class=\"badge\">GET</span>";
+          page.replace("{path}", path);
       }
-      });
+  });
 
   page += FPSTR(HTML_MAIN5);
   page.replace("{device_id}", mqtt->get("$system")["deviceId"].getValue());
@@ -106,6 +110,7 @@ void WebPortal::handleRoot() {
 }
 
 void WebPortal::handleRest() {
+  if(!auth()) return;
   Entry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
   if(webServer->method() == HTTP_GET && entry->isIn()) {
     webServer->send(200, "application/json", "{\"value\":\"" + entry->getValue() + "\",\"updated\":\"" + time(entry->getLastUpdate()) + "\"}");
@@ -118,7 +123,7 @@ void WebPortal::handleRest() {
 }
 
 void WebPortal::handleSaveConfig() {
-  Serial.println("Save");
+  if(!auth()) return;
   config->each([&](Entry* entry) {
       String name = getName(entry);
       name = name.substring(9);
@@ -135,6 +140,7 @@ void WebPortal::handleSaveConfig() {
 }
 
 void WebPortal::handleNotFound() {
+  if(!auth()) return;
   webServer->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   webServer->sendHeader("Pragma", "no-cache");
   webServer->sendHeader("Expires", "-1");
@@ -160,4 +166,12 @@ String WebPortal::time(long time) {
   snprintf(formated, sizeof(formated), "%02d:%02d:%02d", hours, minutes, seconds);
 
   return String(formated);
+}
+
+bool WebPortal::auth() {
+    if (!webServer->authenticate("admin", "password")) {
+        webServer->requestAuthentication();
+        return false;
+    }
+    return true;
 }

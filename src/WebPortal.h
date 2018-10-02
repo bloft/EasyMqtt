@@ -20,6 +20,7 @@ class WebPortal {
     String getRestPath(Entry* entry);
 
     String time(long time);
+    bool auth();
 
   public:
     WebPortal();
