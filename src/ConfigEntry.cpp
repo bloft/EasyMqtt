@@ -56,10 +56,41 @@ void ConfigEntry::reset() {
   // ToDo: Remove all child entries (children = NULL;)
 }
 
+long ConfigEntry::getLong(const char *key, long defaultValue) {
+  char cstr[16];
+  get(key).getCValue(cstr);
+  if(strlen(cstr) == 0) {
+    get(key).setValue(String(defaultValue));
+    return defaultValue;
+  }
+  return atol(cstr);
+}
+
 int ConfigEntry::getInt(const char *key, int defaultValue) {
   char cstr[16];
-  itoa(defaultValue, cstr, 10);
-  return getString(key, cstr).toInt();
+  get(key).getCValue(cstr);
+  if(strlen(cstr) == 0) {
+    get(key).setValue(String(defaultValue));
+    return defaultValue;
+  }
+  return atoi(cstr);
+}
+
+double ConfigEntry::getDouble(const char *key, double defaultValue) {
+  char cstr[16];
+  get(key).getCValue(cstr);
+  if(strlen(cstr) == 0) {
+    get(key).setValue(String(defaultValue));
+    return defaultValue;
+  }
+  return atof(cstr);
+}
+void ConfigEntry::getCString(const char *key, const char *defaultValue, char *destination) {
+  get(key).getCValue(destination);
+  if(strlen(destination) == 0) {
+    get(key).setValue(defaultValue);
+    strcpy(destination, defaultValue);
+  }
 }
 
 String ConfigEntry::getString(const char *key, const char *defaultValue) {

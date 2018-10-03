@@ -165,8 +165,8 @@ String Entry::getValue() {
   return lastValue;
 }
 
-const char* Entry::getCValue() {
-  return lastValue.c_str();
+void Entry::getCValue(char * destination) {
+  strcpy(destination, lastValue.c_str());
 }
 
 void Entry::setValue(String value) {

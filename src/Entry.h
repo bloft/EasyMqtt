@@ -64,7 +64,7 @@ class Entry {
      * Get last value
      */
     String getValue();
-    const char* getCValue();
+    void getCValue(char * destination);
     void setValue(String value);
 
     /**

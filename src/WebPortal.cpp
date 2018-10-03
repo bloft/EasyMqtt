@@ -65,7 +65,6 @@ void WebPortal::handleRoot() {
   page += FPSTR(HTML_MAIN2);
   page += FPSTR(HTML_CONFIG_HEADER);
   page.replace("{title}", "General");
-  Entry* config = &mqtt->get("$config");
   config->each([&](Entry* entry) {
       if(entry == config) return;
       page += FPSTR(HTML_CONFIG_ENTRY);
@@ -152,7 +151,7 @@ void WebPortal::loop() {
 }
 
 String WebPortal::time(long time) {
-  float utcOffset = 2;
+  double utcOffset = config->getDouble("time.offset", 2);
 
   long localTime = round(ntp->getTime(time) + 3600 * utcOffset);
 
@@ -169,7 +168,9 @@ String WebPortal::time(long time) {
 }
 
 bool WebPortal::auth() {
-    if (!webServer->authenticate("admin", "password")) {
+    char pass[32];
+    config->getCString("web.password", "password", pass);
+    if (!webServer->authenticate("admin", pass)) {
         webServer->requestAuthentication();
         return false;
     }

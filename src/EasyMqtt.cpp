@@ -134,6 +134,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["online"] << []() {
     return "ON";
   };
+
   get("$system")["time"].setInterval(900); // every 15 min
   get("$system")["time"] << [this]() {
     ntp().update();
