@@ -106,6 +106,15 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
 
   setInterval(60, 10);
 
+
+  char password[32];
+  configEntry->getCString("password", "", password);
+  if(strlen(password) > 0) {
+    ArduinoOTA.setPassword(password);
+  }
+  ArduinoOTA.setHostname(deviceId);
+  ArduinoOTA.begin();
+
   get("$system").setInterval(300); // every 5 min
   get("$system")["deviceId"] << [this]() {
     return deviceId;
@@ -205,6 +214,7 @@ void EasyMqtt::mqtt(const char* host, int port, const char* username, const char
   */
 void EasyMqtt::loop() {
   connectWiFi();
+  ArduinoOTA.handle();
   if(WiFi.status() == WL_CONNECTED) {
     connectMqtt();
     if(mqttClient.connected()) {

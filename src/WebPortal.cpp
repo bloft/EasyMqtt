@@ -169,8 +169,8 @@ String WebPortal::time(long time) {
 
 bool WebPortal::auth() {
     char pass[32];
-    config->getCString("web.password", "password", pass);
-    if (!webServer->authenticate("admin", pass)) {
+    config->getCString("password", "", pass);
+    if (stelen(pass) > 0 && !webServer->authenticate("admin", pass)) {
         webServer->requestAuthentication();
         return false;
     }
