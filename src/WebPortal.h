@@ -22,6 +22,11 @@ class WebPortal {
     String time(long time);
     bool auth();
 
+    void sendSensor(Entry* entry);
+    void sendConfig(Entry* entry);
+    void sendMqttApi(Entry* entry);
+    void sendRestApi(Entry* entry);
+
   public:
     WebPortal();
 

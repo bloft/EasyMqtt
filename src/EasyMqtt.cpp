@@ -5,6 +5,8 @@
 #include "Entry.h"
 #include "ConfigEntry.h"
 #include "WebPortal.h"
+#include <ArduinoOTA.h>
+
 
 /**
   Handle connections to mqtt
@@ -112,7 +114,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   if(strlen(password) > 0) {
     ArduinoOTA.setPassword(password);
   }
-  ArduinoOTA.setHostname(deviceId);
+  ArduinoOTA.setHostname(deviceId.c_str());
   ArduinoOTA.begin();
 
   get("$system").setInterval(300); // every 5 min

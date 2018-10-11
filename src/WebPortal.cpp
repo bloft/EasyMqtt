@@ -37,75 +37,98 @@ void WebPortal::setup(Entry& mqttEntry, ConfigEntry& config, NTPClient& ntpClien
 
 void WebPortal::handleRoot() {
  if(!auth()) return;
-  String page = "";
-  page += FPSTR(HTML_MAIN1);
-  // Sensors
+  webServer->send(200, "text/html", "");
+
+  webServer->sendContent_P(HTML_MAIN1);
+
   mqtt->each([&](Entry* entry) {
-      if(!entry->isInternal() || webServer->arg("show").equals("all")) {
-         String value = entry->getValue();
-         if(value != NULL) {
-            page += FPSTR(HTML_SENSOR);
-            if(getName(entry).endsWith("password")) {
-                page.replace("{value}", "***");
-            } else {
-                value.replace("{value}", entry->getValue());
-                page.replace("{value}", value);
-            }
-            page.replace("{last_updated}", time(entry->getLastUpdate()));
-         }
-         if(entry->isOut()) {
-            page += FPSTR(HTML_INPUT);
-         }
-         page.replace("{name}", getName(entry));
-         page.replace("{path}", getRestPath(entry));
-      }
+    if(!entry->isInternal() || webServer->arg("show").equals("all")) {
+      sendSensor(entry);
+    }
   });
 
-  // Config
-  page += FPSTR(HTML_MAIN2);
-  page += FPSTR(HTML_CONFIG_HEADER);
-  page.replace("{title}", "General");
+  webServer->sendContent_P(HTML_MAIN2);
+  
+  webServer->sendContent_P(HTML_CONFIG_HEADER);
   config->each([&](Entry* entry) {
-      if(entry == config) return;
-      page += FPSTR(HTML_CONFIG_ENTRY);
-      String name = getName(config, entry).substring(1);
-      page.replace("{key}", name);
-      if(name.endsWith("password")) {
-          page.replace("{type}", "password");
-          page.replace("{value}", "");
-      } else {
-          page.replace("{type}", "text");
-          page.replace("{value}", entry->getValue());
-      }
+    if(entry != config) {
+      sendConfig(entry);
+    }
   });
 
-  // About
-  page += FPSTR(HTML_MAIN3);
+  webServer->sendContent_P(HTML_MAIN3);
+
   mqtt->each([&](Entry* entry) {
-      if(entry->isOut() || entry->isIn()) {
-          page += FPSTR(HTML_API_DOC);
-          String path = entry->getTopic();
-          if(entry->isOut()) path += "<span class=\"badge\">Set</span>";
-          if(entry->isIn()) path += "<span class=\"badge\">Get</span>";
-          page.replace("{path}", path);
-      }
+    if(entry->isOut() || entry->isIn()) {
+      sendMqttApi(entry);
+    }
   });
 
-  page += FPSTR(HTML_MAIN4);
+  webServer->sendContent_P(HTML_MAIN4);
+  
   mqtt->each([&](Entry* entry) {
-      if(entry->isOut() || entry->isIn()) {
-          page += FPSTR(HTML_API_DOC);
-          String path = getRestPath(entry);
-          if(entry->isOut()) path += "<span class=\"badge\">POST</span>";
-          if(entry->isIn()) path += "<span class=\"badge\">GET</span>";
-          page.replace("{path}", path);
-      }
+    if(entry->isOut() || entry->isIn()) {
+      sendRestApi(entry);
+    }
   });
 
-  page += FPSTR(HTML_MAIN5);
+  String page = FPSTR(HTML_MAIN5);
   page.replace("{device_id}", mqtt->get("$system")["deviceId"].getValue());
   page.replace("{topic}", mqtt->getTopic());
-  webServer->send(200, "text/html", page);
+  webServer->sendContent(page);
+}
+
+void WebPortal::sendSensor(Entry* entry) {
+  String page = "";
+  String value = entry->getValue();
+  if(value != NULL) {
+    page += FPSTR(HTML_SENSOR);
+    if(getName(entry).endsWith("password")) {
+      page.replace("{value}", "***");
+    } else {
+      value.replace("{value}", entry->getValue());
+      page.replace("{value}", value);
+    }
+    page.replace("{last_updated}", time(entry->getLastUpdate()));
+  }
+  if(entry->isOut()) {
+    page += FPSTR(HTML_INPUT);
+  }
+  page.replace("{name}", getName(entry));
+  page.replace("{path}", getRestPath(entry));
+  webServer->sendContent(page);
+}
+
+void WebPortal::sendConfig(Entry* entry) {
+  String page = FPSTR(HTML_CONFIG_ENTRY);
+  String name = getName(config, entry).substring(1);
+  page.replace("{key}", name);
+  if(name.endsWith("password")) {
+    page.replace("{type}", "password");
+    page.replace("{value}", "");
+  } else {
+    page.replace("{type}", "text");
+    page.replace("{value}", entry->getValue());
+  }
+  webServer->sendContent(page);
+}
+
+void WebPortal::sendMqttApi(Entry* entry) {
+  String page = FPSTR(HTML_API_DOC);
+  String path = entry->getTopic();
+  if(entry->isOut()) path += "<span class=\"badge\">Set</span>";
+  if(entry->isIn()) path += "<span class=\"badge\">Get</span>";
+  page.replace("{path}", path);
+  webServer->sendContent(page);
+}
+
+void WebPortal::sendRestApi(Entry* entry) {
+  String page = FPSTR(HTML_API_DOC);
+  String path = getRestPath(entry);
+  if(entry->isOut()) path += "<span class=\"badge\">POST</span>";
+  if(entry->isIn()) path += "<span class=\"badge\">GET</span>";
+  page.replace("{path}", path);
+  webServer->sendContent(page);
 }
 
 void WebPortal::handleRest() {
@@ -170,7 +193,7 @@ String WebPortal::time(long time) {
 bool WebPortal::auth() {
     char pass[32];
     config->getCString("password", "", pass);
-    if (stelen(pass) > 0 && !webServer->authenticate("admin", pass)) {
+    if (strlen(pass) > 0 && !webServer->authenticate("admin", pass)) {
         webServer->requestAuthentication();
         return false;
     }
