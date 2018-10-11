@@ -37,7 +37,6 @@ void WebPortal::setup(Entry& mqttEntry, ConfigEntry& config, NTPClient& ntpClien
 
 void WebPortal::handleRoot() {
   if(!auth()) return;
-  webServer->send(200, "text/html", "");
 
   webServer->sendContent_P(HTML_MAIN1);
 
@@ -50,11 +49,11 @@ void WebPortal::handleRoot() {
   webServer->sendContent_P(HTML_MAIN2);
   
   webServer->sendContent_P(HTML_CONFIG_HEADER);
-  config->each([&](Entry* entry) {
-    if(entry != config) {
-      sendConfig(entry);
-    }
-  });
+  //config->each([&](Entry* entry) {
+    //if(entry != config) {
+      //sendConfig(entry);
+    //}
+  //});
 
   webServer->sendContent_P(HTML_MAIN3);
 
@@ -76,6 +75,8 @@ void WebPortal::handleRoot() {
   page.replace("{device_id}", mqtt->get("$system")["deviceId"].getValue());
   page.replace("{topic}", mqtt->getTopic());
   webServer->sendContent(page);
+
+  webServer->client().stop();
 }
 
 void WebPortal::sendSensor(Entry* entry) {
@@ -174,7 +175,7 @@ void WebPortal::loop() {
 }
 
 String WebPortal::time(long time) {
-  double utcOffset = config->getDouble("time.offset", 2);
+  double utcOffset = 2; //config->getDouble("time.offset", 2);
 
   long localTime = round(ntp->getTime(time) + 3600 * utcOffset);
 
@@ -191,11 +192,13 @@ String WebPortal::time(long time) {
 }
 
 bool WebPortal::auth() {
+    /*
   char pass[32];
   config->getCString("password", "", pass);
   if (strlen(pass) > 0 && !webServer->authenticate("admin", pass)) {
     webServer->requestAuthentication();
     return false;
   }
+  */
   return true;
 }
