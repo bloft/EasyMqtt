@@ -38,13 +38,13 @@ void ConfigEntry::save() {
   File f = SPIFFS.open("/config.cfg", "w");
   if (f) {
     each([&](Entry* entry) {
-        if(entry->getTopic() != getTopic()) {
-        f.print(getKey(entry));
-        f.print("=");
-        f.println(entry->getValue());
-        debug(getKey(entry), entry->getValue());
-        }
-        });
+      if(entry->getTopic() != getTopic()) {
+      f.print(getKey(entry));
+      f.print("=");
+      f.println(entry->getValue());
+      debug(getKey(entry), entry->getValue());
+      }
+    });
     f.close();
   } else {
     debug("Failed to save config");

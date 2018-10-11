@@ -56,22 +56,27 @@ void Entry::setPublishFunction(std::function<void(Entry*, String)> function) {
 }
 
 void Entry::debug(String key, bool value) {
+#ifdef DEBUG
   debug(key + " = " + (value ? "true" : "false"));
+#endif
 }
 
 void Entry::debug(String key, int value) {
+#ifdef DEBUG
   debug(key + " = " + value);
+#endif
 }
 
 void Entry::debug(String key, String value) {
+#ifdef DEBUG
   debug(key + " = " + value);
+#endif
 }
 
 void Entry::debug(String msg) {
 #ifdef DEBUG
   Serial.println(msg);
 #endif
-  getRoot()->get("$system")["debug"].publish(msg);
 }
 
 void Entry::callback(const char* topic, uint8_t* payload, unsigned int length) {

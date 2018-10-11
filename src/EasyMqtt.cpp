@@ -9,7 +9,7 @@
 
 
 /**
-  Handle connections to mqtt
+  * Handle connections to mqtt
   */
 void EasyMqtt::connectWiFi() {
   if(WiFi.status() != WL_CONNECTED) {
@@ -59,10 +59,10 @@ void EasyMqtt::connectMqtt() {
     debug("Connecting to MQTT");
     mqttClient.setClient(wifiClient);
     mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
-        each([=](Entry* entry){
-            entry->callback(topic, payload, length);
-            });
-        });
+      each([=](Entry* entry){
+        entry->callback(topic, payload, length);
+      });
+    });
 
     mqttClient.setServer(mqtt_host, mqtt_port);
 
@@ -70,18 +70,18 @@ void EasyMqtt::connectMqtt() {
       debug("Connected to MQTT");
 
       setPublishFunction([&](Entry* entry, String message){
-          if(mqttClient.connected()) {
-          mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
-          }
-          });
+        if(mqttClient.connected()) {
+        mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
+        }
+      });
 
       debug("Topic", getTopic()); 
 
       each([&](Entry* entry){
-          if (entry->isOut()) {
+        if (entry->isOut()) {
           mqttClient.subscribe(entry->getTopic().c_str());
-          }
-          });
+        }
+      });
       mqttDelay = 0;
     } else {
       debug("Connection to MQTT failed, rc", mqttClient.state());
@@ -224,7 +224,7 @@ void EasyMqtt::loop() {
     }
     webPortal.loop();
     each([](Entry* entry){
-        entry->update();
-        });
+      entry->update();
+    });
   }
 }

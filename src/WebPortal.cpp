@@ -27,16 +27,16 @@ void WebPortal::setup(Entry& mqttEntry, ConfigEntry& config, NTPClient& ntpClien
   webServer->on("/", std::bind(&WebPortal::handleRoot, this));
   webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
   mqtt->each([&](Entry* entry) {
-      if(entry->isIn() || entry->isOut()) {
+    if(entry->isIn() || entry->isOut()) {
       webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
-      }
-      });
+    }
+  });
   webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
   webServer->begin();
 }
 
 void WebPortal::handleRoot() {
- if(!auth()) return;
+  if(!auth()) return;
   webServer->send(200, "text/html", "");
 
   webServer->sendContent_P(HTML_MAIN1);
@@ -147,14 +147,14 @@ void WebPortal::handleRest() {
 void WebPortal::handleSaveConfig() {
   if(!auth()) return;
   config->each([&](Entry* entry) {
-      String name = getName(entry);
-      name = name.substring(9);
-      name.replace("/", ".");
-      entry->setValue(webServer->arg(name.c_str()));
-      Serial.print(name);
-      Serial.print(" = ");
-      Serial.println(webServer->arg(name.c_str()));
-      });
+    String name = getName(entry);
+    name = name.substring(9);
+    name.replace("/", ".");
+    entry->setValue(webServer->arg(name.c_str()));
+    Serial.print(name);
+    Serial.print(" = ");
+    Serial.println(webServer->arg(name.c_str()));
+  });
   config->save();
   webServer->sendHeader("Location", String("/"), true);
   webServer->send(302, "text/plain", "");
@@ -191,11 +191,11 @@ String WebPortal::time(long time) {
 }
 
 bool WebPortal::auth() {
-    char pass[32];
-    config->getCString("password", "", pass);
-    if (strlen(pass) > 0 && !webServer->authenticate("admin", pass)) {
-        webServer->requestAuthentication();
-        return false;
-    }
-    return true;
+  char pass[32];
+  config->getCString("password", "", pass);
+  if (strlen(pass) > 0 && !webServer->authenticate("admin", pass)) {
+    webServer->requestAuthentication();
+    return false;
+  }
+  return true;
 }
