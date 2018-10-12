@@ -1,10 +1,5 @@
 #include "Entry.h"
 
-void Entry::setName(const char* name) {
-  Entry::name = (char*)malloc(strlen(name)+1);
-  strncpy(Entry::name, name, strlen(name)+1);
-}
-
 std::function<void(Entry*, String)> Entry::getPublishFunction() {
   if(publishFunction == NULL && parent) {
     return parent->getPublishFunction();
@@ -13,7 +8,8 @@ std::function<void(Entry*, String)> Entry::getPublishFunction() {
 }
 
 Entry::Entry(const char* name) {
-  setName(name);
+  Entry::name = (char*)malloc(strlen(name)+1);
+  strcpy(Entry::name, name);
 }
 
 Entry *Entry::getOrCreate(const char* name) {

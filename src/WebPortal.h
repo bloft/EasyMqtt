@@ -2,7 +2,7 @@
 
 #include <ESP8266WebServer.h>
 #include "Entry.h"
-#include "ConfigEntry.h"
+#include "Config.h"
 #include "NTPClient.h"
 
 // http://usemodj.com/2016/08/25/esp8266-arducam-5mp-ov5642-camera-wifi-video-streaming/
@@ -11,7 +11,7 @@ class WebPortal {
   private:
     std::unique_ptr<ESP8266WebServer> webServer;
     Entry* mqtt;
-    ConfigEntry* config;
+    Config* config;
     NTPClient* ntp;
 
     String getName(Entry* entry);
@@ -23,14 +23,14 @@ class WebPortal {
     bool auth();
 
     void sendSensor(Entry* entry);
-    void sendConfig(Entry* entry);
+    void sendConfigs();
     void sendMqttApi(Entry* entry);
     void sendRestApi(Entry* entry);
 
   public:
     WebPortal();
 
-    void setup(Entry& mqttEntry, ConfigEntry& config, NTPClient& ntp);
+    void setup(Entry& mqttEntry, Config& config, NTPClient& ntp);
 
     void handleRoot();
     void handleRest();

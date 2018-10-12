@@ -10,7 +10,7 @@ class Entry {
     std::function<String()> inFunction = NULL;
     std::function<void(Entry*, String)> publishFunction = NULL;
 
-    char* name = "N/A";
+    char* name;
     int force = 0;
     int interval = -1;
     int forceUpdate = -1;
@@ -21,7 +21,6 @@ class Entry {
     Entry* next = NULL;
     Entry* children = NULL;
 
-    void setName(const char* name);
     std::function<void(Entry*, String)> getPublishFunction();
 
   protected:

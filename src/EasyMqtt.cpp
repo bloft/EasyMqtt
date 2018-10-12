@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "Entry.h"
-#include "ConfigEntry.h"
+#include "Config.h"
 #include "WebPortal.h"
 #include <ArduinoOTA.h>
 
@@ -97,25 +97,22 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
 #endif
 
   // Add config entry
-  configEntry = new ConfigEntry();
-  addChild(configEntry);
+  cfg = new Config();
+  cfg->load();
 
-  configEntry->load();
-
-  deviceId = configEntry->getString("device.name", String(ESP.getChipId()).c_str());
-
+  // Add time(NTP)
   ntpClient = new NTPClient();
 
-  setInterval(60, 10);
+  deviceId = config().get("device.name", String(ESP.getChipId()).c_str());
 
-
-  char password[32];
-  configEntry->getCString("password", "", password);
+  char * password = config().get("password", "");
   if(strlen(password) > 0) {
     ArduinoOTA.setPassword(password);
   }
   ArduinoOTA.setHostname(deviceId.c_str());
   ArduinoOTA.begin();
+  
+  setInterval(60, 10);
 
   get("$system").setInterval(300); // every 5 min
   get("$system")["deviceId"] << [this]() {
@@ -153,18 +150,15 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   };
 
   get("$system")["restart"] >> [this](String value) {
-    if(value == "restart") {
+    if(value == config().get("password", "")) {
       debug("Restart");
-      disconnectWiFi();
       ESP.restart();
     }
   };
 
   get("$system")["reset"] >> [this](String value) {
-    if(value == "reset") {
-      debug("Factory Reset");
+    if(value == config().get("password", "")) {
       config().reset();
-      ESP.restart();
     }
   };
 }
@@ -177,8 +171,8 @@ String EasyMqtt::getTopic() {
   return String("easyMqtt/") + deviceId;
 }
 
-ConfigEntry & EasyMqtt::config() {
-  return *configEntry;
+Config & EasyMqtt::config() {
+  return *cfg;
 }
 
 NTPClient & EasyMqtt::ntp() {
@@ -190,8 +184,8 @@ NTPClient & EasyMqtt::ntp() {
   Deprecated
   */
 void EasyMqtt::wifi(const char* ssid, const char* password) {
-  config().getString("wifi.ssid", ssid);
-  config().getString("wifi.password", password);
+  config().get("wifi.ssid", ssid);
+  config().get("wifi.password", password);
   wifi_ssid = ssid;
   wifi_password = password;
 }
@@ -201,10 +195,10 @@ void EasyMqtt::wifi(const char* ssid, const char* password) {
   Deprecated
   */
 void EasyMqtt::mqtt(const char* host, int port, const char* username, const char* password) {
-  config().getString("mqtt.host", host);
-  config().getString("mqtt.port", String(port).c_str());
-  config().getString("mqtt.username", username);
-  config().getString("mqtt.password", password);
+  config().get("mqtt.host", host);
+  config().get("mqtt.port", String(port).c_str());
+  config().get("mqtt.username", username);
+  config().get("mqtt.password", password);
   mqtt_host = host;
   mqtt_port = port;
   mqtt_username = username;

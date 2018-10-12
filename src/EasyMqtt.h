@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "Entry.h"
-#include "ConfigEntry.h"
+#include "Config.h"
 #include "WebPortal.h"
 #include "NTPClient.h"
 
@@ -13,7 +13,7 @@ class EasyMqtt : public Entry {
     PubSubClient mqttClient;
     WebPortal webPortal;
 
-    ConfigEntry* configEntry;
+    Config* cfg;
 
     NTPClient* ntpClient;
 
@@ -47,7 +47,7 @@ class EasyMqtt : public Entry {
     
     virtual String getTopic();
 
-    ConfigEntry & config();
+    Config & config();
 
     NTPClient & ntp();
 

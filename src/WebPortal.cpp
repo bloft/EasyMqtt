@@ -18,7 +18,7 @@ String WebPortal::getRestPath(Entry* entry) {
 WebPortal::WebPortal() {
 }
 
-void WebPortal::setup(Entry& mqttEntry, ConfigEntry& config, NTPClient& ntpClient) {
+void WebPortal::setup(Entry& mqttEntry, Config& config, NTPClient& ntpClient) {
   mqtt = &mqttEntry;
   ntp = &ntpClient;
   config = config;
@@ -49,11 +49,7 @@ void WebPortal::handleRoot() {
   webServer->sendContent_P(HTML_MAIN2);
   
   webServer->sendContent_P(HTML_CONFIG_HEADER);
-  //config->each([&](Entry* entry) {
-    //if(entry != config) {
-      //sendConfig(entry);
-    //}
-  //});
+  sendConfigs();
 
   webServer->sendContent_P(HTML_MAIN3);
 
@@ -100,18 +96,20 @@ void WebPortal::sendSensor(Entry* entry) {
   webServer->sendContent(page);
 }
 
-void WebPortal::sendConfig(Entry* entry) {
-  String page = FPSTR(HTML_CONFIG_ENTRY);
-  String name = getName(config, entry).substring(1);
-  page.replace("{key}", name);
-  if(name.endsWith("password")) {
-    page.replace("{type}", "password");
-    page.replace("{value}", "");
-  } else {
-    page.replace("{type}", "text");
-    page.replace("{value}", entry->getValue());
-  }
-  webServer->sendContent(page);
+void WebPortal::sendConfigs() {
+  config->each([&](char *key, char *value) {
+    String page = FPSTR(HTML_CONFIG_ENTRY);
+    String name = String(key);
+    page.replace("{key}", key);
+    if(name.endsWith("password")) {
+      page.replace("{type}", "password");
+      page.replace("{value}", "");
+    } else {
+      page.replace("{type}", "text");
+      page.replace("{value}", String(value));
+    }
+    webServer->sendContent(page);
+  });
 }
 
 void WebPortal::sendMqttApi(Entry* entry) {
@@ -147,14 +145,8 @@ void WebPortal::handleRest() {
 
 void WebPortal::handleSaveConfig() {
   if(!auth()) return;
-  config->each([&](Entry* entry) {
-    String name = getName(entry);
-    name = name.substring(9);
-    name.replace("/", ".");
-    entry->setValue(webServer->arg(name.c_str()));
-    Serial.print(name);
-    Serial.print(" = ");
-    Serial.println(webServer->arg(name.c_str()));
+  config->each([&](char* key, char *value) {
+    config->set(key, webServer->arg(key).c_str());
   });
   config->save();
   webServer->sendHeader("Location", String("/"), true);
@@ -175,7 +167,7 @@ void WebPortal::loop() {
 }
 
 String WebPortal::time(long time) {
-  double utcOffset = 2; //config->getDouble("time.offset", 2);
+  double utcOffset = config->getDouble("time.offset", 2);
 
   long localTime = round(ntp->getTime(time) + 3600 * utcOffset);
 
@@ -192,13 +184,10 @@ String WebPortal::time(long time) {
 }
 
 bool WebPortal::auth() {
-    /*
-  char pass[32];
-  config->getCString("password", "", pass);
+  char *pass = config->get("password", "");
   if (strlen(pass) > 0 && !webServer->authenticate("admin", pass)) {
     webServer->requestAuthentication();
     return false;
   }
-  */
   return true;
 }
