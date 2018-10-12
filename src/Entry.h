@@ -15,7 +15,7 @@ class Entry {
     int interval = -1;
     int forceUpdate = -1;
     unsigned long lastUpdate = 0;
-    char* lastValue = "";
+    char* lastValue = NULL;
 
     Entry* parent = NULL;
     Entry* next = NULL;

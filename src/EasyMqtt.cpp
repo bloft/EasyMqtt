@@ -16,7 +16,7 @@ void EasyMqtt::connectWiFi() {
     debug("Connecting to wifi");
     WiFi.mode(WIFI_STA);
 
-    WiFi.begin(wifi_ssid, wifi_password);
+    WiFi.begin(config().get("wifi.ssid", ""), config().get("wifi.password", ""));
 
 #ifdef DEBUG
     WiFi.printDiag(Serial);
@@ -38,7 +38,7 @@ void EasyMqtt::connectWiFi() {
       debug("IP address", WiFi.softAPIP().toString());
     }
     debug("devideId", deviceId);
-    webPortal.setup(*this, config(), ntp());
+    webPortal.setup(this, &config(), &ntp());
   }
 }
 
@@ -64,9 +64,9 @@ void EasyMqtt::connectMqtt() {
       });
     });
 
-    mqttClient.setServer(mqtt_host, mqtt_port);
+    mqttClient.setServer(config().get("mqtt.host", ""), config().getInt("mqtt.port", 1883));
 
-    if (mqttClient.connect(deviceId.c_str(), mqtt_username, mqtt_password), get("$system")["online"].getTopic().c_str(), 1, 1, "OFF") {
+    if (mqttClient.connect(deviceId.c_str(), config().get("mqtt.username", ""), config().get("mqtt.password", ""), get("$system")["online"].getTopic().c_str(), 1, 1, "OFF")) {
       debug("Connected to MQTT");
 
       setPublishFunction([&](Entry* entry, String message){
@@ -186,8 +186,6 @@ NTPClient & EasyMqtt::ntp() {
 void EasyMqtt::wifi(const char* ssid, const char* password) {
   config().get("wifi.ssid", ssid);
   config().get("wifi.password", password);
-  wifi_ssid = ssid;
-  wifi_password = password;
 }
 
 /**
@@ -199,10 +197,6 @@ void EasyMqtt::mqtt(const char* host, int port, const char* username, const char
   config().get("mqtt.port", String(port).c_str());
   config().get("mqtt.username", username);
   config().get("mqtt.password", password);
-  mqtt_host = host;
-  mqtt_port = port;
-  mqtt_username = username;
-  mqtt_password = password;
 }
 
 /**

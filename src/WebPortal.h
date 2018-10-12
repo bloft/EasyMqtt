@@ -30,7 +30,7 @@ class WebPortal {
   public:
     WebPortal();
 
-    void setup(Entry& mqttEntry, Config& config, NTPClient& ntp);
+    void setup(Entry *mqttEntry, Config *config, NTPClient *ntp);
 
     void handleRoot();
     void handleRest();

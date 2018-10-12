@@ -18,10 +18,10 @@ String WebPortal::getRestPath(Entry* entry) {
 WebPortal::WebPortal() {
 }
 
-void WebPortal::setup(Entry& mqttEntry, Config& config, NTPClient& ntpClient) {
-  mqtt = &mqttEntry;
-  ntp = &ntpClient;
-  config = config;
+void WebPortal::setup(Entry *mqttEntry, Config *config, NTPClient *ntpClient) {
+  WebPortal::mqtt = mqttEntry;
+  WebPortal::config = config;
+  WebPortal::ntp = ntpClient;
   mqtt->debug("Setup Web Portal");
   webServer.reset(new ESP8266WebServer(80));
   webServer->on("/", std::bind(&WebPortal::handleRoot, this));
