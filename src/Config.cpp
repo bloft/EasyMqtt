@@ -85,8 +85,8 @@ char * Config::set(const char *key, const char *value){
   while(ele) {
     if(strcmp(key, ele->key) == 0) {
       free(ele->value);
-      elements->value = (char*)malloc(strlen(value)+1);
-      strcpy(elements->value, value);
+      ele->value = (char*)malloc(strlen(value)+1);
+      strcpy(ele->value, value);
       return ele->value;
     }
     ele = ele->next;
