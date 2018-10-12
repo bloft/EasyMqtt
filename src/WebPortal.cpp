@@ -68,7 +68,7 @@ void WebPortal::handleRoot() {
   });
 
   String page = FPSTR(HTML_MAIN5);
-  page.replace("{device_id}", mqtt->get("$system")["deviceId"].getValue());
+  page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
   page.replace("{topic}", mqtt->getTopic());
   webServer->sendContent(page);
 
@@ -134,7 +134,7 @@ void WebPortal::handleRest() {
   if(!auth()) return;
   Entry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
   if(webServer->method() == HTTP_GET && entry->isIn()) {
-    webServer->send(200, "application/json", "{\"value\":\"" + entry->getValue() + "\",\"updated\":\"" + time(entry->getLastUpdate()) + "\"}");
+    webServer->send(200, "application/json", "{\"value\":\"" + String(entry->getValue()) + "\",\"updated\":\"" + time(entry->getLastUpdate()) + "\"}");
   } else if(webServer->method() == HTTP_POST && entry->isOut()) {
     entry->update(webServer->arg("plain"));
     webServer->send(200, "text/plain", webServer->uri() + " Update");

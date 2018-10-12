@@ -15,7 +15,7 @@ class Entry {
     int interval = -1;
     int forceUpdate = -1;
     unsigned long lastUpdate = 0;
-    String lastValue = "";
+    char* lastValue = "";
 
     Entry* parent = NULL;
     Entry* next = NULL;
@@ -62,9 +62,8 @@ class Entry {
     /**
      * Get last value
      */
-    String getValue();
-    void getCValue(char * destination);
-    void setValue(String value);
+    char *getValue();
+    void setValue(const char *value);
 
     /**
      * 
@@ -74,7 +73,7 @@ class Entry {
     /**
      * Publish value to mqtt
      */
-    void publish(String message);
+    void publish(const char *message);
     
     /**
      * Iterate over each child, including sub children

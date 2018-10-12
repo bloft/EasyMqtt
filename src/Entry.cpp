@@ -96,7 +96,7 @@ void Entry::update() {
       String value = inFunction();
       if (value != "") {
         if (value != getValue() || force > getForce()) {
-          setValue(value);
+          setValue(value.c_str());
           force = 0;
         }
       }
@@ -162,17 +162,15 @@ int Entry::getForce() {
   return forceUpdate;
 }
 
-String Entry::getValue() {
+char *Entry::getValue() {
   return lastValue;
 }
 
-void Entry::getCValue(char * destination) {
-  strcpy(destination, lastValue.c_str());
-}
-
-void Entry::setValue(String value) {
+void Entry::setValue(const char *value) {
   lastUpdate = millis();
-  lastValue = value;
+  free(lastValue);
+  lastValue = (char*)malloc(strlen(value)+1);
+  strcpy(lastValue, value);
   publish(value);
 }
 
@@ -180,10 +178,10 @@ long Entry::getLastUpdate() {
   return lastUpdate;
 }
 
-void Entry::publish(String message) {
+void Entry::publish(const char *message) {
   auto function = getPublishFunction();
   if(function) {
-    function(this, message);
+    function(this, String(message));
   }
 }
 
