@@ -9,22 +9,12 @@ void setup() {
   mqtt.wifi("ssid", "pass");
   mqtt.mqtt("server", 1883, "user", "password");
 
-  mqtt["temperature"] << []() {
-    float value = dht.readTemperature();
-    if(isnan(value)) {
-      return String("");
-    } else {
-      return String(value);
-    }
+  mqtt["temperature"] << [&]() {
+    return dht.readTemperature();
   };
 
-  mqtt["humidity"] << []() {
-    float value = dht.readHumidity();
-    if(isnan(value)) {
-      return String("");
-    } else {
-      return String(value);
-    }
+  mqtt["humidity"] << [&]() {
+    return dht.readHumidity();
   };
 
 }

@@ -1,8 +1,8 @@
 # EasyMqtt
 Easy handling of Mqtt on esp8266
 
-* Easy wifi configuration
-* Easy mqtt configuration
+* Easy wifi configuration using web interface
+* Easy mqtt configuration using web interface
 * Easy configuration of mqtt endpoints
 * Web based UI to see current values
 
@@ -13,14 +13,10 @@ Easy handling of Mqtt on esp8266
 EasyMqtt mqtt;
 
 void setup() {
-  // Setup wifi
-  mqtt.wifi("ssid", "password");
-  mqtt.mqtt("host", 1883, "user", "pass");
-  
-  mqtt.config().setString("foo", "My Foo");
+  mqtt.config().set("foo", "My Foo");
 
-  mqtt["foo"] << [](){
-    return mqtt.config().getString("foo");
+  mqtt["foo"] << [&](){
+    return String(mqtt.config().get("foo", "default"));
   };
 }
 

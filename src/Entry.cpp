@@ -219,6 +219,23 @@ void Entry::operator<<(std::function<String()> inFunction) {
   Entry::inFunction = inFunction;
 }
 
+void Entry::operator<<(std::function<char *()> inFunction) {
+  Entry::inFunction = [&]() {
+    return String(inFunction());
+  };
+}
+
+void Entry::operator<<(std::function<float()> inFunction) {
+  Entry::inFunction = [&]() {
+    float value = inFunction();
+    if(isnan(value)) {
+      return String("");
+    } else {
+      return String(value);
+    }
+  };
+}
+
 void Entry::operator>>(std::function<void(String payload)> outFunction) {
   Entry::outFunction = outFunction;
 }

@@ -99,6 +99,8 @@ class Entry {
      *  Read data from function and send it to mqtt
      */
     void operator<<(std::function<String()> inFunction);
+    void operator<<(std::function<char *()> inFunction);
+    void operator<<(std::function<float()> inFunction);
 
     /**
      *  Handle data comming from mqtt
