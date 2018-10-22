@@ -168,7 +168,9 @@ char *Entry::getValue() {
 
 void Entry::setValue(const char *value) {
   lastUpdate = millis();
-  free(lastValue);
+  if(lastValue) {
+    free(lastValue);
+  }
   lastValue = (char*)malloc(strlen(value)+1);
   strcpy(lastValue, value);
   publish(value);
