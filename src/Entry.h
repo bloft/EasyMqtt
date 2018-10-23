@@ -63,7 +63,7 @@ class Entry {
      * Get last value
      */
     char *getValue();
-    void setValue(const char *value);
+    bool setValue(const char *value, bool force = false);
 
     /**
      * 

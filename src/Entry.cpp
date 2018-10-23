@@ -95,10 +95,9 @@ void Entry::update() {
       lastUpdate = time;
       String value = inFunction();
       if (value != "") {
-        if (value != getValue() || force > getForce()) {
-          setValue(value.c_str());
-          force = 0;
-        }
+          if(setValue(value.c_str(), force > getForce())) {
+            force = 0;
+          }
       }
     }
   }
@@ -166,14 +165,18 @@ char *Entry::getValue() {
   return lastValue;
 }
 
-void Entry::setValue(const char *value) {
-  lastUpdate = millis();
-  if(lastValue) {
-    free(lastValue);
+bool Entry::setValue(const char *value, bool force) {
+  if(force || strcmp(value, lastValue) != 0) {
+    lastUpdate = millis();
+    if(lastValue) {
+      free(lastValue);
+    }
+    lastValue = (char*)malloc(strlen(value)+1);
+    strcpy(lastValue, value);
+    publish(value);
+    return true;
   }
-  lastValue = (char*)malloc(strlen(value)+1);
-  strcpy(lastValue, value);
-  publish(value);
+  return false;
 }
 
 long Entry::getLastUpdate() {
