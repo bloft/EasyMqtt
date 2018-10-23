@@ -166,7 +166,7 @@ char *Entry::getValue() {
 }
 
 bool Entry::setValue(const char *value, bool force) {
-  if(force || strcmp(value, lastValue) != 0) {
+  if(force || !lastValue || strcmp(value, lastValue) != 0) {
     lastUpdate = millis();
     if(lastValue) {
       free(lastValue);
@@ -225,13 +225,13 @@ void Entry::operator<<(std::function<String()> inFunction) {
 }
 
 void Entry::operator<<(std::function<char *()> inFunction) {
-  Entry::inFunction = [&]() {
+  Entry::inFunction = [&, inFunction]() {
     return String(inFunction());
   };
 }
 
 void Entry::operator<<(std::function<float()> inFunction) {
-  Entry::inFunction = [&]() {
+  Entry::inFunction = [&, inFunction]() {
     float value = inFunction();
     if(isnan(value)) {
       return String("");
