@@ -49,7 +49,10 @@ void WebPortal::handleRoot() {
   webServer->sendContent_P(HTML_CONFIG_HEADER);
   sendConfigs();
 
-  webServer->sendContent_P(HTML_MAIN3);
+  String page = FPSTR(HTML_MAIN3);
+  page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
+  page.replace("{topic}", mqtt->getTopic());
+  webServer->sendContent(page);
 
   mqtt->each([&](Entry* entry) {
     if(entry->isOut() || entry->isIn()) {
@@ -65,10 +68,7 @@ void WebPortal::handleRoot() {
     }
   });
 
-  String page = FPSTR(HTML_MAIN5);
-  page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
-  page.replace("{topic}", mqtt->getTopic());
-  webServer->sendContent(page);
+  webServer->sendContent_P(HTML_MAIN5);
 
   webServer->client().stop();
 }
@@ -89,6 +89,8 @@ void WebPortal::sendSensor(Entry* entry) {
   if(entry->isOut()) {
     page += FPSTR(HTML_INPUT);
   }
+
+  page.replace("{color}", entry->isInternal() ? "warning" : "primary");
   page.replace("{name}", getName(entry));
   page.replace("{path}", getRestPath(entry));
   webServer->sendContent(page);
