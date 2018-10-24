@@ -27,9 +27,7 @@ void WebPortal::setup(Entry *mqttEntry, Config *config, NTPClient *ntpClient) {
   webServer->on("/", std::bind(&WebPortal::handleRoot, this));
   webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
   mqtt->each([&](Entry* entry) {
-    if(entry->isIn() || entry->isOut()) {
-      webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
-    }
+    webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
   });
   webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
   webServer->begin();
@@ -133,7 +131,7 @@ void WebPortal::sendRestApi(Entry* entry) {
 void WebPortal::handleRest() {
   if(!auth()) return;
   Entry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
-  if(webServer->method() == HTTP_GET && entry->isIn()) {
+  if(webServer->method() == HTTP_GET) {
     webServer->send(200, "application/json", "{\"value\":\"" + String(entry->getValue()) + "\",\"updated\":\"" + time(entry->getLastUpdate()) + "\"}");
   } else if(webServer->method() == HTTP_POST && entry->isOut()) {
     entry->update(webServer->arg("plain"));

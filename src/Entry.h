@@ -16,6 +16,7 @@ class Entry {
     int forceUpdate = -1;
     unsigned long lastUpdate = 0;
     char* lastValue = NULL;
+    bool persist = false;
 
     Entry* parent = NULL;
     Entry* next = NULL;
@@ -56,6 +57,8 @@ class Entry {
     int getInterval();
     void setInterval(int interval);
     void setInterval(int interval, int force);
+
+    void setPersist(bool persist);
 
     int getForce();
 

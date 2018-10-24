@@ -119,19 +119,19 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     return deviceId;
   };
   get("$system")["mem"]["heap"] << []() {
-    return String(ESP.getFreeHeap());
+    return ESP.getFreeHeap();
   };
   get("$system")["uptime"] << []() {
-    return String(millis() / 1000);
+    return millis() / 1000;
   };
   get("$system")["wifi"]["rssi"] << []() {
-    return String(WiFi.RSSI());
+    return WiFi.RSSI();
   };
   get("$system")["wifi"]["quality"] << []() {
     int quality = (WiFi.RSSI()+100)*1.6667;
     if(quality < 0) quality = 0;
     if(quality > 100) quality = 100;
-    return String(quality);
+    return quality;
   };
   get("$system")["wifi"]["ssid"] << []() {
     return WiFi.SSID();
@@ -146,7 +146,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["time"].setInterval(900); // every 15 min
   get("$system")["time"] << [this]() {
     ntp().update();
-    return String(ntp().getTime());
+    return ntp().getTime();
   };
 
   get("$system")["restart"] >> [this](String value) {

@@ -1,4 +1,5 @@
 #include "Entry.h"
+#include <FS.h>
 
 std::function<void(Entry*, String)> Entry::getPublishFunction() {
   if(publishFunction == NULL && parent) {
@@ -154,6 +155,17 @@ void Entry::setInterval(int interval, int force) {
   forceUpdate = force;
 }
 
+void Entry::setPersist(bool persist) {
+  this->persist = persist;
+  if(persist) {
+    File f = SPIFFS.open(getTopic(), "r");
+    if (f) {
+      setValue(f.readStringUntil('\n').c_str(), true);
+      f.close();
+    }
+  }
+}
+
 int Entry::getForce() {
   if(forceUpdate < 0) {
     return parent->getForce();
@@ -174,6 +186,12 @@ bool Entry::setValue(const char *value, bool force) {
     lastValue = (char*)malloc(strlen(value)+1);
     strcpy(lastValue, value);
     publish(value);
+
+    if(persist) {
+      File f = SPIFFS.open(getTopic(), "w");
+      f.println(value);
+      f.close();
+    } 
     return true;
   }
   return false;
