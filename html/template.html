@@ -100,41 +100,79 @@
                       {name}
                     </strong>
                   </div>
-                  <div class="panel-body" style="font-size: 24px;">
-                    {value}
-                  </div>
+                  <ul class="list-group">
+                    {input}
+                    {output}
+                  </ul>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> <span>{last_updated}</span></div> 
                 </div>
               </div>
 <!-- split:sensor -->
 
-<!-- split:input -->
               <div class="col-md-4">
-                <div class="panel panel-success">
+                <div class="panel panel-primary">
                   <div class="panel-heading"><strong>{name}</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">
-                    <form>
-                      <div class="input-group">
-                        <input type="text" class="form-control" placeholder="value">
-                        <span class="input-group-btn">
-                          <button class="btn btn-default" type="button" data-url="{path}" onclick="sendValue(this);">
-                            Send
-                          </button>
-                        </span>
-                      </div>
-                    </form>
-                  </div>
+                  <ul class="list-group">
+<!-- split:sensor_input -->
+                    <li class="list-group-item">
+                      <form>
+                        <div class="input-group">
+                          <input type="text" class="form-control" placeholder="value">
+                          <span class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-url="{path}" onclick="sendValue(this);">
+                              Send
+                            </button>
+                          </span>
+                        </div>
+                      </form>
+                    </li>
+<!-- split:sensnor_input -->
+<!-- split:sensor_output -->
+                    <li class="list-group-item" style="font-size: 24px;">
+                      <span>{value}</span>
+                    </li>
+<!-- split:sensor_output -->
+                  </ul>
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> <span>{last_updated}</span></div> 
                 </div>
               </div>
-<!-- split:input -->
 
-              <div class="col-md-4">
-                <div class="panel panel-warning">
-                  <div class="panel-heading" style="background-image: linear-gradient(to bottom,#444 0,#aaa 100%); color: #fff;"><strong>{name}</strong></div>
+              <!-- Single sensor info -->
+	    	      <div class="col-md-4">
+                <div class="panel panel-primary">
+                  <div class="panel-heading"><strong>audio/mute</strong></div>
                   <ul class="list-group">
                     <li class="list-group-item" style="font-size: 24px;">
-                      {value}
+<!-- split:value_on -->
+                    <span class="label label-success">{value}</span>
+<!-- split:value_on -->
+<!-- split:value_off -->
+                    <span class="label label-danger">{value}</span>
+<!-- split:value_off -->
                     </li>
+                  </ul>
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> {last_updated}</div> 
+                </div>
+              </div>
+
+              <!-- Single sensor info -->
+	    	      <div class="col-md-4">
+                <div class="panel panel-primary">
+                  <div class="panel-heading"><strong>model</strong></div>
+                  <ul class="list-group">
+                    <li class="list-group-item" style="font-size: 24px;">
+                      W1110S
+                    </li>
+                  </ul>
+                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
+                </div>
+              </div>
+
+              <!-- Single sensor info -->
+	    	      <div class="col-md-4">
+                <div class="panel panel-primary">
+                  <div class="panel-heading"><strong>model</strong></div>
+                  <ul class="list-group">
                     <li class="list-group-item">
                       <form>
                         <div class="input-group">
@@ -148,30 +186,6 @@
                       </form>
                     </li>
                   </ul>
-                </div>
-              </div>
-
-              <!-- Single sensor info -->
-	    	      <div class="col-md-4">
-                <div class="panel panel-info">
-                  <div class="panel-heading"><strong>audio/mute</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">
-<!-- split:value_on -->
-                    <span class="label label-success">{value}</span>
-<!-- split:value_on -->
-<!-- split:value_off -->
-                    <span class="label label-danger">{value}</span>
-<!-- split:value_off -->
-                  </div>
-                  <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> {last_updated}</div> 
-                </div>
-              </div>
-
-              <!-- Single sensor info -->
-	    	      <div class="col-md-4">
-                <div class="panel panel-info">
-                  <div class="panel-heading"><strong>model</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">W1110S</div>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                 </div>
               </div>

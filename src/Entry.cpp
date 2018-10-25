@@ -82,7 +82,7 @@ void Entry::callback(const char* topic, uint8_t* payload, unsigned int length) {
     for (int i = 0; i < length; i++) {
       _payload += (char)payload[i];
     }
-    if(!isIn() || _payload != getValue()) {
+    if(!isIn() || (millis() - lastPublish) > 1000 || strcmp(lastValue, _payload.c_str()) != 0) {
       update(_payload);
     }
   }
@@ -204,6 +204,7 @@ long Entry::getLastUpdate() {
 void Entry::publish(const char *message) {
   auto function = getPublishFunction();
   if(function) {
+    lastPublish = millis();
     function(this, String(message));
   }
 }

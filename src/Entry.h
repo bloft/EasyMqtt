@@ -15,6 +15,7 @@ class Entry {
     int interval = -1;
     int forceUpdate = -1;
     unsigned long lastUpdate = 0;
+    unsigned long lastPublish = 0;
     char* lastValue = NULL;
     bool persist = false;
 

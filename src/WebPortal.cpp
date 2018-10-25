@@ -74,25 +74,27 @@ void WebPortal::handleRoot() {
 }
 
 void WebPortal::sendSensor(Entry* entry) {
-  String page = "";
+  String page = FPSTR(HTML_SENSOR);
+  page.replace("{color}", entry->isInternal() ? "warning" : "primary");
+  page.replace("{name}", getName(entry));
+  if(entry->isOut()) {
+    page.replace("{input}", FPSTR(HTML_SENSOR_INPUT));
+    page.replace("{path}", getRestPath(entry));
+  } else {
+    page.replace("{input}", "");
+  }
   String value = entry->getValue();
   if(value != NULL) {
-    page += FPSTR(HTML_SENSOR);
+    page.replace("{output}", FPSTR(HTML_SENSOR_OUTPUT));
     if(getName(entry).endsWith("password")) {
       page.replace("{value}", "***");
     } else {
-      value.replace("{value}", entry->getValue());
       page.replace("{value}", value);
     }
-    page.replace("{last_updated}", time(entry->getLastUpdate()));
+  } else {
+    page.replace("{output}", "");
   }
-  if(entry->isOut()) {
-    page += FPSTR(HTML_INPUT);
-  }
-
-  page.replace("{color}", entry->isInternal() ? "warning" : "primary");
-  page.replace("{name}", getName(entry));
-  page.replace("{path}", getRestPath(entry));
+  page.replace("{last_updated}", time(entry->getLastUpdate()));
   webServer->sendContent(page);
 }
 
