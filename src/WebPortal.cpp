@@ -36,7 +36,9 @@ void WebPortal::setup(Entry *mqttEntry, Config *config, NTPClient *ntpClient) {
 void WebPortal::handleRoot() {
   if(!auth()) return;
 
-  webServer->sendContent_P(HTML_MAIN1);
+  String page = FPSTR(HTML_MAIN1);
+  page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
+  webServer->sendContent(page);
 
   mqtt->each([&](Entry* entry) {
     if(!entry->isInternal() || webServer->arg("show").equals("all")) {
@@ -49,7 +51,7 @@ void WebPortal::handleRoot() {
   webServer->sendContent_P(HTML_CONFIG_HEADER);
   sendConfigs();
 
-  String page = FPSTR(HTML_MAIN3);
+  page = FPSTR(HTML_MAIN3);
   page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
   page.replace("{topic}", mqtt->getTopic());
   webServer->sendContent(page);
