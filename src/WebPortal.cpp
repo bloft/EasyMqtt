@@ -79,14 +79,16 @@ void WebPortal::sendSensor(Entry* entry) {
   String page = FPSTR(HTML_SENSOR);
   page.replace("{color}", entry->isInternal() ? "warning" : "primary");
   page.replace("{name}", getName(entry));
+  bool include = false;
   if(entry->isOut()) {
+    include = true;
     page.replace("{input}", FPSTR(HTML_SENSOR_INPUT));
-    page.replace("{path}", getRestPath(entry));
   } else {
     page.replace("{input}", "");
   }
   String value = entry->getValue();
   if(value != NULL) {
+    include = true;
     page.replace("{output}", FPSTR(HTML_SENSOR_OUTPUT));
     if(getName(entry).endsWith("password")) {
       page.replace("{value}", "***");
@@ -96,8 +98,11 @@ void WebPortal::sendSensor(Entry* entry) {
   } else {
     page.replace("{output}", "");
   }
-  page.replace("{last_updated}", time(entry->getLastUpdate()));
-  webServer->sendContent(page);
+  if(include) {
+    page.replace("{path}", getRestPath(entry));
+    page.replace("{last_updated}", time(entry->getLastUpdate()));
+    webServer->sendContent(page);
+  }
 }
 
 void WebPortal::sendConfigs() {

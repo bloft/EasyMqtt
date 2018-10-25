@@ -34,17 +34,18 @@
   </style>
   <script type="application/javascript">
     function sendValue(input) {
-      $.ajax({
-        url: input.dataset.url, method: "POST", data: $(input).closest("form").find("input").val()
-      }).complete(function (data, textStatus, jqXHR) {
-        alert(textStatus);
-      });
+        $.ajax(input.dataset.url,{
+          'data': $(input).closest("form").find("input").val(), 
+          'type': 'POST',
+          'processData': false,
+          'contentType': 'application/json'
+        });
     }
     setInterval(function() {
       $("[data-ajaxurl]").each(function(index) {
         var ele = $(this);
         $.getJSON( ele.data("ajaxurl"), function (data) {
-          var eleValue =  $(ele.find(".panel-body")[0]);
+          var eleValue =  $(ele.find("#value")[0]);
           if(data.value.toUpperCase() == "OPEN") {
             eleValue.html("<span class=\"label label-success\">" + data.value + "</span>");
           } else if(data.value.toUpperCase() == "CLOSE") {
@@ -129,7 +130,7 @@
 <!-- split:sensnor_input -->
 <!-- split:sensor_output -->
                     <li class="list-group-item" style="font-size: 24px;">
-                      <span>{value}</span>
+                      <span id="value">{value}</span>
                     </li>
 <!-- split:sensor_output -->
                   </ul>
