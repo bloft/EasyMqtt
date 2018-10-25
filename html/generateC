@@ -1,19 +1,38 @@
 #!/usr/bin/php
 <?php
 
-$html = file_get_contents("template.html");
-$pattern = "|<!-- split:(.*) -->|U";
+generateC("template.html", "../src/html.h");
+//generateC("test.html", "../src/html.h");
 
-preg_match_all($pattern, $html, $matches, PREG_SET_ORDER);
+function generateC($input, $output) {
+  $library = json_decode(file_get_contents("../library.json"), true);
 
-$split = preg_split($pattern, $html);
+  $html = file_get_contents($input);
+  $html = str_replace("{version}", $library['version'], $html);
+  $html = str_replace("{easymqtt.url}", $library['repository']['url'], $html);
 
-$tmp = array();
-foreach($matches as $key => $value) {
-  if(!array_key_exists($value[1], $tmp)) {
-    $tmp[$value[1]] = addslashes(trimContent($split[$key + 1]));
+  $pattern = "|<!-- split:(.*) -->|U";
+
+  preg_match_all($pattern, $html, $matches, PREG_SET_ORDER);
+
+  $split = preg_split($pattern, $html);
+
+  $tmp = array();
+  foreach($matches as $key => $value) {
+    if(!array_key_exists($value[1], $tmp)) {
+      $tmp[$value[1]] = addslashes(trimContent($split[$key + 1]));
+    }
+  } 
+
+  $fp = fopen($output, "w");
+  fputs($fp, "#pragma once\n");
+  fputs($fp, "\n");
+  foreach($tmp as $header => $content) {
+    $header = strtoupper($header);
+    fputs ($fp, "const char HTML_${header}[] PROGMEM = \"$content\";\n");
   }
-} 
+  fclose ($fp);
+}
 
 function trimContent($str) {
   $arr = explode("\n",$str);
@@ -23,15 +42,3 @@ function trimContent($str) {
   }
   return $output;
 }
-
-$fp = fopen("../src/html.h", "w");
-fputs($fp, "#ifndef html_h\n");
-fputs($fp, "#define html_h\n");
-fputs($fp, "\n");
-foreach($tmp as $header => $content) {
-  $header = strtoupper($header);
-  fputs ($fp, "const char HTML_${header}[] PROGMEM = \"$content\";\n");
-}
-fputs($fp, "\n");
-fputs($fp, "#endif\n");
-fclose ($fp);

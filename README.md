@@ -1,7 +1,10 @@
 # EasyMqtt
 Easy handling of Mqtt on esp8266
 
-Including a web interface to se current values, and avalible topic, and a rest api
+* Easy wifi configuration using web interface
+* Easy mqtt configuration using web interface
+* Easy configuration of mqtt endpoints
+* Web based UI to see current values
 
 ## Examble usage EasyMqtt
 ```C++
@@ -10,15 +13,15 @@ Including a web interface to se current values, and avalible topic, and a rest a
 EasyMqtt mqtt;
 
 void setup() {
-  // Setup wifi
-  mqtt.wifi("ssid", "password");
-  mqtt.mqtt("host", 1883, "user", "pass");
+  mqtt.config().set("foo", "My Foo");
 
-	mqtt["foo"] << [](){ return String("bar"); };
+  mqtt["foo"] << [&](){
+    return String(mqtt.config().get("foo", "default"));
+  };
 }
 
 void loop() {
-	mqtt.loop();
+  mqtt.loop();
 }
 
 ```
