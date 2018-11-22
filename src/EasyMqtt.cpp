@@ -2,10 +2,8 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include "Entry.h"
-#include "Config.h"
-#include "WebPortal.h"
 #include <ArduinoOTA.h>
+#include <FS.h>
 
 
 /**
@@ -59,6 +57,7 @@ void EasyMqtt::connectMqtt() {
     debug("Connecting to MQTT");
     mqttClient.setClient(wifiClient);
     mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
+      deviceList->callback(topic, payload, length);
       each([=](Entry* entry){
         entry->callback(topic, payload, length);
       });
@@ -82,6 +81,10 @@ void EasyMqtt::connectMqtt() {
           mqttClient.subscribe(entry->getTopic().c_str());
         }
       });
+
+      // Device list
+      mqttClient.subscribe("easyMqtt/+/$system/online");
+      mqttClient.subscribe("easyMqtt/+/$system/wifi/ip");
       mqttDelay = 0;
     } else {
       debug("Connection to MQTT failed, rc", mqttClient.state());
@@ -99,6 +102,8 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   // Add config entry
   cfg = new Config();
   cfg->load();
+
+  deviceList = new Device();
 
   // Add time(NTP)
   ntpClient = new NTPClient();
@@ -118,9 +123,6 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["deviceId"] << [this]() {
     return deviceId;
   };
-  get("$system")["mem"]["heap"] << []() {
-    return ESP.getFreeHeap();
-  };
   get("$system")["uptime"] << []() {
     return millis() / 1000;
   };
@@ -139,6 +141,26 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["wifi"]["ip"] << []() {
     return WiFi.localIP().toString();
   };
+
+  get("$system")["mem"]["heap"] << []() {
+    return ESP.getFreeHeap();
+  };
+  get("$system")["fs"]["usedBytes"] << []() {
+    FSInfo fs_info;
+    SPIFFS.info(fs_info);
+    return fs_info.usedBytes;
+  };
+  get("$system")["fs"]["totalBytes"] << []() {
+    FSInfo fs_info;
+    SPIFFS.info(fs_info);
+    return fs_info.totalBytes;
+  };
+  get("$system")["fs"]["usage"] << []() {
+    FSInfo fs_info;
+    SPIFFS.info(fs_info);
+    return (fs_info.usedBytes / fs_info.totalBytes) * 100;
+  };
+
   get("$system")["online"] << []() {
     return "ON";
   };
@@ -150,14 +172,14 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   };
 
   get("$system")["restart"] >> [this](String value) {
-    if(value == config().get("password", "")) {
+    if(strcmp(config().get("password", ""), value.c_str()) == 0) {
       debug("Restart");
       ESP.restart();
     }
   };
 
   get("$system")["reset"] >> [this](String value) {
-    if(value == config().get("password", "")) {
+    if(strcmp(config().get("password", ""), value.c_str()) == 0) {
       config().reset();
     }
   };

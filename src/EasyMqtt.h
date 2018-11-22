@@ -4,6 +4,7 @@
 #include <PubSubClient.h>
 #include "Entry.h"
 #include "Config.h"
+#include "Device.h"
 #include "WebPortal.h"
 #include "NTPClient.h"
 
@@ -14,8 +15,8 @@ class EasyMqtt : public Entry {
     WebPortal webPortal;
 
     Config* cfg;
-
     NTPClient* ntpClient;
+    Device* deviceList;
 
     String deviceId = "deviceId";
     long mqttDelay = 0;
