@@ -29,11 +29,14 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
       strcpy(device->deviceId, deviceId);
       device->ip = (char*)malloc(4);
       strcpy(device->ip, "N/A");
+      device->name = (char*)malloc(4);
+      strcpy(device->name, "N/A");
       device->next = deviceList;
       deviceList = device;
     }
     
     device->online = true;
+    device->lastUpdate = millis();
 
     if(strcmp(subTopic, "/$system/wifi/ip") == 0) {
       free(device->ip);

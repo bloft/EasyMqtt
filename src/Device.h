@@ -3,8 +3,10 @@
 #include <functional>
 struct deviceElem {
   char * deviceId;
+  char * name;
   bool online;
   char * ip;
+  unsigned long lastUpdate = 0;
   struct deviceElem * next;
 };
 
