@@ -83,12 +83,11 @@ void EasyMqtt::connectMqtt() {
       });
 
       // Device list
-      mqttClient.subscribe("easyMqtt/+/$system/online");
-      mqttClient.subscribe("easyMqtt/+/$system/wifi/ip");
+      mqttClient.subscribe("easyMqtt/+/+/online");
+      mqttClient.subscribe("easyMqtt/+/+/wifi/ip");
       mqttDelay = 0;
     } else {
       debug("Connection to MQTT failed, rc", mqttClient.state());
-
       mqttDelay = millis() + 5000;
     }
   }
