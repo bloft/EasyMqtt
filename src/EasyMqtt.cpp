@@ -36,7 +36,7 @@ void EasyMqtt::connectWiFi() {
       debug("IP address", WiFi.softAPIP().toString());
     }
     debug("devideId", deviceId);
-    webPortal.setup(this, &config(), &ntp());
+    webPortal.setup(this, deviceList, &config(), &ntp());
   }
 }
 
@@ -84,6 +84,7 @@ void EasyMqtt::connectMqtt() {
 
       // Device list
       mqttClient.subscribe("easyMqtt/+/+/online");
+      //mqttClient.subscribe("easyMqtt/+/+/uptime");
       mqttClient.subscribe("easyMqtt/+/+/wifi/ip");
       mqttDelay = 0;
     } else {

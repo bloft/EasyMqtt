@@ -282,11 +282,28 @@
 
         <div role="tabpanel" class="tab-pane" id="devices">
           <div class="container-fluid">
-            <div class="row">
+            <div class="row" style="min-height: 600px">
               <div class="col-md-12">
-                bla bla
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Online</th>
+                      <th>IP</th>
+                      <th>Link</th>
+                    </tr>
+                  </thead>
 <!-- split:main2 -->
-<!-- split:main2 -->
+<!-- split:devices -->
+                  <tr>
+                    <td>{id}</td>
+                    <td>{online}</td>
+                    <td>{ip}</td>
+                    <td><a href="http://{ip}">Link</a></td>
+                  </tr>
+<!-- split:devices -->
+<!-- split:main3 -->
+                </table>
              </div>
            </div>
           </div>
@@ -297,7 +314,7 @@
             <div class="row">
               <div class="col-md-12">
                 <form class="form-horizontal" action="/save" method="POST">
-<!-- split:main2 -->
+<!-- split:main3 -->
                   <br />
                   <h3>wifi</h3><hr/>
                   <div class="form-group">
@@ -350,7 +367,7 @@
                     </div>
                   </div>
 <!-- split:config_entry -->
-<!-- split:main3 -->
+<!-- split:main4 -->
                   <hr/>
                   <div class="form-group">
                     <div class="col-sm-offset-9 col-sm-2">
@@ -377,7 +394,7 @@
                 <hr />
                 <h3>MQTT API:</h3>
                 <ul class="list-group">
-<!-- split:main3 -->
+<!-- split:main4 -->
                   <li class="list-group-item">
                     {path}
                     <span class="badge">Set</span>
@@ -387,12 +404,12 @@
                     EasyMqtt/123456/model
                     <span class="badge">Get</span>
                   </li>
-<!-- split:main4 -->
+<!-- split:main5 -->
                 </ul>
                 <hr />
                 <h3>Rest API:</h3>
                 <ul class="list-group">
-<!-- split:main4 -->
+<!-- split:main5 -->
 <!-- split:api_doc -->
                   <li class="list-group-item">
                     {path}
@@ -412,7 +429,7 @@
                     <span class="badge">GET</span>
                     <span class="badge">POST</span>
                   </li>
-<!-- split:main5 -->
+<!-- split:main6 -->
                 </ul>
               </div>
             </div>
@@ -427,4 +444,4 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   </body>
 </html>
-<!-- split:main5 -->
+<!-- split:main6 -->

@@ -18,9 +18,10 @@ String WebPortal::getRestPath(Entry* entry) {
 WebPortal::WebPortal() {
 }
 
-void WebPortal::setup(Entry *mqttEntry, Config *config, NTPClient *ntpClient) {
+void WebPortal::setup(Entry *mqttEntry, Device *device, Config *config, NTPClient *ntpClient) {
   WebPortal::mqtt = mqttEntry;
   WebPortal::config = config;
+  WebPortal::device = device;
   WebPortal::ntp = ntpClient;
   mqtt->debug("Setup Web Portal");
   webServer.reset(new ESP8266WebServer(80));
@@ -47,11 +48,13 @@ void WebPortal::handleRoot() {
   });
 
   webServer->sendContent_P(HTML_MAIN2);
+  sendDevices();
+
+  webServer->sendContent_P(HTML_MAIN3);
   
-  webServer->sendContent_P(HTML_CONFIG_HEADER);
   sendConfigs();
 
-  page = FPSTR(HTML_MAIN3);
+  page = FPSTR(HTML_MAIN4);
   page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
   page.replace("{topic}", mqtt->getTopic());
   webServer->sendContent(page);
@@ -62,7 +65,7 @@ void WebPortal::handleRoot() {
     }
   });
 
-  webServer->sendContent_P(HTML_MAIN4);
+  webServer->sendContent_P(HTML_MAIN5);
   
   mqtt->each([&](Entry* entry) {
     if(entry->isOut() || entry->isIn()) {
@@ -70,7 +73,7 @@ void WebPortal::handleRoot() {
     }
   });
 
-  webServer->sendContent_P(HTML_MAIN5);
+  webServer->sendContent_P(HTML_MAIN6);
 
   webServer->client().stop();
 }
@@ -105,7 +108,18 @@ void WebPortal::sendSensor(Entry* entry) {
   }
 }
 
+void WebPortal::sendDevices() {
+  device->each([&](char *id, bool online, char *ip) {
+    String page = FPSTR(HTML_DEVICES);
+    page.replace("{id}", String(id));
+    page.replace("{online}", (online ? "ONLINE" : "OFFLINE"));
+    page.replace("{ip}", String(ip));
+    webServer->sendContent(page);
+  });
+}
+
 void WebPortal::sendConfigs() {
+  webServer->sendContent_P(HTML_CONFIG_HEADER);
   config->each([&](char *key, char *value) {
     String page = FPSTR(HTML_CONFIG_ENTRY);
     String name = String(key);
