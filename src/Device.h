@@ -19,5 +19,5 @@ class Device {
 
     void callback(const char* topic, uint8_t* payload, unsigned int length);
 
-    void each(std::function<void(char*, bool, char*)> f);
+    void each(std::function<void(char*, char*, bool, char*, unsigned long)> f);
 };

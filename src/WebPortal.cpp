@@ -38,6 +38,7 @@ void WebPortal::handleRoot() {
   if(!auth()) return;
 
   String page = FPSTR(HTML_MAIN1);
+  page.replace("{name}", String(mqtt->get("$system")["name"].getValue()));
   page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
   webServer->sendContent(page);
 
@@ -109,11 +110,13 @@ void WebPortal::sendSensor(Entry* entry) {
 }
 
 void WebPortal::sendDevices() {
-  device->each([&](char *id, bool online, char *ip) {
+  device->each([&](char *id, char *name, bool online, char *ip, unsigned long lastUpdated) {
     String page = FPSTR(HTML_DEVICES);
     page.replace("{id}", String(id));
+    page.replace("{name}", String(name));
     page.replace("{online}", (online ? "ONLINE" : "OFFLINE"));
     page.replace("{ip}", String(ip));
+    page.replace("{lastUpdated}", time(lastUpdated));
     webServer->sendContent(page);
   });
 }

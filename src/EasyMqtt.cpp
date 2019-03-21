@@ -84,6 +84,7 @@ void EasyMqtt::connectMqtt() {
 
       // Device list
       mqttClient.subscribe("easyMqtt/+/+/online");
+      mqttClient.subscribe("easyMqtt/+/+/name");
       //mqttClient.subscribe("easyMqtt/+/+/uptime");
       mqttClient.subscribe("easyMqtt/+/+/wifi/ip");
       mqttDelay = 0;
@@ -108,7 +109,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   // Add time(NTP)
   ntpClient = new NTPClient();
 
-  deviceId = config().get("device.name", String(ESP.getChipId()).c_str());
+  deviceId = config().get("device.id", String(ESP.getChipId()).c_str());
 
   char * password = config().get("password", "");
   if(strlen(password) > 0) {
@@ -120,11 +121,23 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   setInterval(60, 10);
 
   get("$system").setInterval(300); // every 5 min
+  get("$system")["uptime"] << []() {
+    return millis() / 1000;
+  };
   get("$system")["deviceId"] << [this]() {
     return deviceId;
   };
-  get("$system")["uptime"] << []() {
-    return millis() / 1000;
+  get("$system")["name"] << [this]() {
+    return (String)config().get("device.name", deviceId.c_str());
+  };
+  get("$system")["config"] << [this]() {
+    String cfg = "[";
+    each([&](Entry* entry) {
+      if(entry->isOut() || entry->isIn()) {
+        cfg += "\"" + entry->getTopic() + "\", ";
+      }
+    });
+    return cfg + "]";
   };
   get("$system")["wifi"]["rssi"] << []() {
     return WiFi.RSSI();
@@ -182,6 +195,14 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     if(strcmp(config().get("password", ""), value.c_str()) == 0) {
       config().reset();
     }
+  };
+
+  get("$system")["reset"]["reason"] << [this]() {
+    return ESP.getResetReason();
+  };
+
+  get("$system")["reset"]["reason"] << [this]() {
+    return ESP.getResetReason();
   };
 }
 

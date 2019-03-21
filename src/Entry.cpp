@@ -209,6 +209,10 @@ void Entry::publish(const char *message) {
   }
 }
 
+void Entry::publish(String message) {
+  publish(message.c_str());
+}
+
 void Entry::each(std::function<void(Entry*)> f) {
   f(this);
   Entry* child = children;

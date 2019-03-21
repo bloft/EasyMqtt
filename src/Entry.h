@@ -78,6 +78,7 @@ class Entry {
      * Publish value to mqtt
      */
     void publish(const char *message);
+    void publish(String message);
     
     /**
      * Iterate over each child, including sub children

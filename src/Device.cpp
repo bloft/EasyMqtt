@@ -43,6 +43,10 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
       free(device->ip);
       device->ip = (char*)malloc(length);
       strncpy(device->ip, (const char*)payload, length);
+    } else if(strcmp(subTopic, "/$system/name") == 0) {
+      free(device->name);
+      device->name = (char*)malloc(length);
+      strncpy(device->name, (const char*)payload, length);
     } else if(strcmp(subTopic, "/$system/online") == 0) {
       if(strncmp((const char*)payload, "OFF", length) == 0) {
         device->online = false;
@@ -51,10 +55,10 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
   }
 }
 
-void Device::each(std::function<void(char*, bool, char*)> f) {
+void Device::each(std::function<void(char*, char*, bool, char*, unsigned long)> f) {
   deviceElem * device = deviceList;
   while(device) {
-    f(device->deviceId, device->online, device->ip);
+    f(device->deviceId, device->name, device->online, device->ip, device->lastUpdate);
     device = device->next;
   }
 }
