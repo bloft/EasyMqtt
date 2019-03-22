@@ -1,9 +1,8 @@
 #include "Device.h"
-#include <iostream>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ArduinoOTA.h>
+//#include <stdio.h>
+//#include <string.h>
+//#include <stdlib.h>
+#include <Arduino.h>
 
 Device::Device() {
 }
@@ -53,6 +52,12 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
       }
     }
   }
+}
+
+void Device::subscribe(PubSubClient* mqttClient) {
+  mqttClient->subscribe("easyMqtt/+/+/online");
+  mqttClient->subscribe("easyMqtt/+/+/name");
+  mqttClient->subscribe("easyMqtt/+/+/wifi/ip");
 }
 
 void Device::each(std::function<void(char*, char*, bool, char*, unsigned long)> f) {

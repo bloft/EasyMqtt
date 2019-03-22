@@ -1,6 +1,8 @@
 #pragma once
 
 #include <functional>
+#include <PubSubClient.h>
+
 struct deviceElem {
   char * deviceId;
   char * name;
@@ -18,6 +20,8 @@ class Device {
     Device();
 
     void callback(const char* topic, uint8_t* payload, unsigned int length);
+
+    void subscribe(PubSubClient* mqttClient);
 
     void each(std::function<void(char*, char*, bool, char*, unsigned long)> f);
 };
