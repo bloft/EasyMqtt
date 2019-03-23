@@ -13,8 +13,10 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
     ++tmp;
     const char * subTopic = strchr(tmp, '/');
 
-    char deviceId[10];
-    strncpy(deviceId, tmp, subTopic-tmp);
+    int deviceLength = subTopic-tmp;
+    char deviceId[deviceLength+1];
+    strncpy(deviceId, tmp, deviceLength);
+    deviceId[deviceLength] = 0;
     
     deviceElem * device = deviceList;
     while(device) {
@@ -40,12 +42,14 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
 
     if(strcmp(subTopic, "/$system/wifi/ip") == 0) {
       free(device->ip);
-      device->ip = (char*)malloc(length);
+      device->ip = (char*)malloc(length+1);
       strncpy(device->ip, (const char*)payload, length);
+      device->ip[length] = 0;
     } else if(strcmp(subTopic, "/$system/name") == 0) {
       free(device->name);
-      device->name = (char*)malloc(length);
+      device->name = (char*)malloc(length+1);
       strncpy(device->name, (const char*)payload, length);
+      device->name[length] = 0;
     } else if(strcmp(subTopic, "/$system/online") == 0) {
       if(strncmp((const char*)payload, "OFF", length) == 0) {
         device->online = false;

@@ -174,9 +174,6 @@ void WebPortal::handleSaveConfig() {
   config->each([&](char* key, char *value) {
     if(!(String(key)).endsWith("password") || strlen(webServer->arg(key).c_str()) > 0) {
       config->set(key, webServer->arg(key).c_str());
-      Serial.print(key);
-      Serial.print(" = ");
-      Serial.println(webServer->arg(key));
     } 
   });
   config->save();
