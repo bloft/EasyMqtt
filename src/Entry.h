@@ -3,6 +3,14 @@
 #include <functional>
 #include <Arduino.h>
 
+enum EntryType { text, number };
+
+inline const char* ToString(EntryType v) {
+  switch(v) {
+    case text: return "text";
+    case number: return "number";
+  }
+}
 
 class Entry {
   private:
@@ -18,6 +26,8 @@ class Entry {
     unsigned long lastPublish = 0;
     char* lastValue = NULL;
     bool persist = false;
+
+    EntryType type = text;
 
     Entry* parent = NULL;
     Entry* next = NULL;
@@ -60,6 +70,8 @@ class Entry {
     void setInterval(int interval, int force);
 
     void setPersist(bool persist);
+
+    EntryType getType();
 
     int getForce();
 
@@ -105,7 +117,7 @@ class Entry {
      */
     void operator<<(std::function<String()> inFunction);
     void operator<<(std::function<char *()> inFunction);
-    void operator<<(std::function<float()> inFunction);
+    void operator<<(std::function<double()> inFunction);
 
     /**
      *  Handle data comming from mqtt

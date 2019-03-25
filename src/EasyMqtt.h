@@ -44,6 +44,8 @@ class EasyMqtt : public Entry {
 
     NTPClient & ntp();
 
+    void name(const char* name);
+
     /**
        Configure wifi
        Deprecated

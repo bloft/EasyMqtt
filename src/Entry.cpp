@@ -166,6 +166,10 @@ void Entry::setPersist(bool persist) {
   }
 }
 
+EntryType Entry::getType() {
+  return type;
+}
+
 int Entry::getForce() {
   if(forceUpdate < 0) {
     return parent->getForce();
@@ -244,18 +248,21 @@ Entry & Entry::operator[](const char* name) {
 }
 
 void Entry::operator<<(std::function<String()> inFunction) {
+  type = text;
   Entry::inFunction = inFunction;
 }
 
 void Entry::operator<<(std::function<char *()> inFunction) {
+  type = text;
   Entry::inFunction = [&, inFunction]() {
     return String(inFunction());
   };
 }
 
-void Entry::operator<<(std::function<float()> inFunction) {
+void Entry::operator<<(std::function<double()> inFunction) {
+  type = number;
   Entry::inFunction = [&, inFunction]() {
-    float value = inFunction();
+    double value = inFunction();
     if(isnan(value)) {
       return String("");
     } else {

@@ -70,7 +70,7 @@ void EasyMqtt::connectMqtt() {
 
       setPublishFunction([&](Entry* entry, String message){
         if(mqttClient.connected()) {
-        mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
+          mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
         }
       });
 
@@ -188,6 +188,15 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     }
   };
 
+  // Publish type of all entries
+  get("$system")["discover"] >> [this](String value) {
+    each([&](Entry* entry) {
+      if(mqttClient.connected()) {
+        mqttClient.publish((entry->getTopic() + "/$type").c_str(), ToString(entry->getType()), true);
+      }
+    });
+  };
+
   get("$system")["reset"] >> [this](String value) {
     if(strcmp(config().get("password", ""), value.c_str()) == 0) {
       config().reset();
@@ -220,8 +229,14 @@ NTPClient & EasyMqtt::ntp() {
 }
 
 /**
+  Configure name of device
+  */
+void EasyMqtt::name(const char* name) {
+  config().get("device.name", name);
+}
+
+/**
   Configure wifi
-  Deprecated
   */
 void EasyMqtt::wifi(const char* ssid, const char* password) {
   config().get("wifi.ssid", ssid);
@@ -230,7 +245,6 @@ void EasyMqtt::wifi(const char* ssid, const char* password) {
 
 /**
   Configure mqtt
-  Deprecated
   */
 void EasyMqtt::mqtt(const char* host, int port, const char* username, const char* password) {
   config().get("mqtt.host", host);
