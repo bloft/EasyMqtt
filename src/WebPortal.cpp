@@ -110,13 +110,13 @@ void WebPortal::sendSensor(Entry* entry) {
 }
 
 void WebPortal::sendDevices() {
-  device->each([&](char *id, char *name, bool online, char *ip, unsigned long lastUpdated) {
+  device->each([&](deviceElem* device) {
     String page = FPSTR(HTML_DEVICES);
-    page.replace("{id}", String(id));
-    page.replace("{name}", String(name));
-    page.replace("{online}", (online ? "ONLINE" : "OFFLINE"));
-    page.replace("{ip}", String(ip));
-    page.replace("{lastUpdated}", time(lastUpdated));
+    page.replace("{id}", String(device->deviceId));
+    page.replace("{name}", String(device->name));
+    page.replace("{online}", (device->online ? "<span class=\"label label-success\">ONLINE</span>" : "<span class=\"label label-danger\">OFFLINE</span>"));
+    page.replace("{ip}", String(device->ip));
+    page.replace("{lastUpdated}", time(device->lastUpdate));
     webServer->sendContent(page);
   });
 }

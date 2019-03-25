@@ -1,7 +1,4 @@
 #include "Device.h"
-//#include <stdio.h>
-//#include <string.h>
-//#include <stdlib.h>
 #include <Arduino.h>
 
 Device::Device() {
@@ -56,6 +53,13 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
       }
     }
   }
+
+  // Iterate all elements to mark old devices offline
+  each([&](deviceElem* elem) {
+    if(elem->lastUpdate < (millis() - 300000)) {
+      elem->online = false;
+    }
+  });
 }
 
 void Device::subscribe(PubSubClient* mqttClient) {
@@ -64,10 +68,10 @@ void Device::subscribe(PubSubClient* mqttClient) {
   mqttClient->subscribe("easyMqtt/+/+/wifi/ip");
 }
 
-void Device::each(std::function<void(char*, char*, bool, char*, unsigned long)> f) {
+void Device::each(std::function<void(deviceElem *)> f) {
   deviceElem * device = deviceList;
   while(device) {
-    f(device->deviceId, device->name, device->online, device->ip, device->lastUpdate);
+    f(device);
     device = device->next;
   }
 }

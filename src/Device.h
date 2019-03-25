@@ -23,5 +23,5 @@ class Device {
 
     void subscribe(PubSubClient* mqttClient);
 
-    void each(std::function<void(char*, char*, bool, char*, unsigned long)> f);
+    void each(std::function<void(deviceElem *)> f);
 };
