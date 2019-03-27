@@ -26,10 +26,10 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
       device = new deviceElem();
       device->deviceId = (char*)malloc(strlen(deviceId)+1);
       strcpy(device->deviceId, deviceId);
+      device->name = (char*)malloc(strlen(deviceId)+1);
+      strcpy(device->name, deviceId);
       device->ip = (char*)malloc(4);
       strcpy(device->ip, "N/A");
-      device->name = (char*)malloc(4);
-      strcpy(device->name, "N/A");
       device->next = deviceList;
       deviceList = device;
     }
@@ -56,7 +56,7 @@ void Device::callback(const char* topic, uint8_t* payload, unsigned int length) 
 
   // Iterate all elements to mark old devices offline
   each([&](deviceElem* elem) {
-    if(elem->lastUpdate < (millis() - 300000)) {
+    if( (elem->lastUpdate + 600000) < millis()) {
       elem->online = false;
     }
   });

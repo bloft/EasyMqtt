@@ -148,6 +148,7 @@ int Entry::getInterval() {
 
 void Entry::setInterval(int interval) {
   this->interval = interval;
+  forceUpdate = 1;
 }
 
 void Entry::setInterval(int interval, int force) {

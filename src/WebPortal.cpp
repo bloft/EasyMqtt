@@ -38,7 +38,7 @@ void WebPortal::handleRoot() {
   if(!auth()) return;
 
   String page = FPSTR(HTML_MAIN1);
-  page.replace("{name}", String(mqtt->get("$system")["name"].getValue()));
+  page.replace("{device_name}", String(mqtt->get("$system")["name"].getValue()));
   page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
   webServer->sendContent(page);
 
@@ -56,6 +56,7 @@ void WebPortal::handleRoot() {
   sendConfigs();
 
   page = FPSTR(HTML_MAIN4);
+  page.replace("{device_name}", String(mqtt->get("$system")["name"].getValue()));
   page.replace("{device_id}", String(mqtt->get("$system")["deviceId"].getValue()));
   page.replace("{topic}", mqtt->getTopic());
   webServer->sendContent(page);

@@ -57,7 +57,9 @@ void EasyMqtt::connectMqtt() {
     debug("Connecting to MQTT");
     mqttClient.setClient(wifiClient);
     mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
-      deviceList->callback(topic, payload, length);
+      if(strncmp(topic, getTopic().c_str(), strlen(getTopic().c_str())) != 0) {
+        deviceList->callback(topic, payload, length);
+      }
       each([=](Entry* entry){
         entry->callback(topic, payload, length);
       });
@@ -115,9 +117,9 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   ArduinoOTA.setHostname(deviceId.c_str());
   ArduinoOTA.begin();
   
-  setInterval(60, 10);
+  setInterval(60, 10); // Check every 1 min and force update after 10 unchanged
 
-  get("$system").setInterval(300); // every 5 min
+  get("$system").setInterval(300, 3); // every 5 min and force after 3 unchanged
   get("$system")["uptime"] << []() {
     return millis() / 1000;
   };
