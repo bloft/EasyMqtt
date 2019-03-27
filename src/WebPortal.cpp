@@ -27,6 +27,7 @@ void WebPortal::setup(Entry *mqttEntry, Device *device, Config *config, NTPClien
   webServer.reset(new ESP8266WebServer(80));
   webServer->on("/", std::bind(&WebPortal::handleRoot, this));
   webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
+  webServer->on("/rest", std::bind(&WebPortal::handleRestAll, this));
   mqtt->each([&](Entry* entry) {
     webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
   });
@@ -151,17 +152,68 @@ void WebPortal::sendMqttApi(Entry* entry) {
 void WebPortal::sendRestApi(Entry* entry) {
   String page = FPSTR(HTML_API_DOC);
   String path = getRestPath(entry);
+  if(entry->isIn()) path += "<span class=\"badge\"><a style=\"color: white;\" href=\"" + path + "\">GET</a></span>";
   if(entry->isOut()) path += "<span class=\"badge\">POST</span>";
-  if(entry->isIn()) path += "<span class=\"badge\">GET</span>";
   page.replace("{path}", path);
   webServer->sendContent(page);
+}
+
+String WebPortal::toJson(Entry *entry) {
+  String json = "{";
+  if(entry->isIn()) {
+    if(!entry->getValue()) {
+      json += "\"value\":null,";
+    } else {
+      switch(entry->getType()) {
+        case text:
+          json += "\"value\":\"" + String(entry->getValue()) + "\",";
+          break;
+        case number:
+          json += "\"value\":" + String(entry->getValue()) + ",";
+          break;
+      }
+    }
+    json += "\"updated\":\"" + time(entry->getLastUpdate()) + "\",";
+  }
+  if(entry->isOut()) {
+    json += "\"update\":\"true\",";
+  }
+  if(entry->isInternal()) {
+    json += "\"internal\":\"true\",";
+  }
+  json += "\"type\":\"" + String(ToString(entry->getType())) + "\""; 
+  json += "}";
+  return json;
+}
+
+void WebPortal::handleRestAll() {
+  if(!auth()) return;
+  if(webServer->method() == HTTP_GET) {
+    String result = "{";
+    result += "\"deviceId\":\"" + String(mqtt->get("$system")["deviceId"].getValue()) + "\",";
+    result += "\"name\":\"" + String(mqtt->get("$system")["name"].getValue()) + "\",";
+    result += "\"basetopic\":\"" + mqtt->getTopic() + "\",";
+    result += "\"sensors\":{";
+    bool first = true;
+    mqtt->each([&](Entry* entry) {
+      if(entry->isIn() || entry->isOut()) {
+        if(!first) result += ",";
+        first = false;
+        result += "\"" + getName(entry) + "\":" +  toJson(entry);
+      }
+    });
+    result += "}}";
+    webServer->send(200, "application/json", result);
+  } else {
+    webServer->send(404, "text/plain", "Unsupported");
+  }
 }
 
 void WebPortal::handleRest() {
   if(!auth()) return;
   Entry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
   if(webServer->method() == HTTP_GET) {
-    webServer->send(200, "application/json", "{\"value\":\"" + String(entry->getValue()) + "\",\"updated\":\"" + time(entry->getLastUpdate()) + "\"}");
+    webServer->send(200, "application/json", toJson(entry));
   } else if(webServer->method() == HTTP_POST && entry->isOut()) {
     entry->update(webServer->arg("plain"));
     webServer->send(200, "text/plain", webServer->uri() + " Update");

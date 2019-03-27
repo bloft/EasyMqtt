@@ -30,12 +30,15 @@ class WebPortal {
     void sendMqttApi(Entry* entry);
     void sendRestApi(Entry* entry);
 
+    String toJson(Entry* entry);
+
   public:
     WebPortal();
 
     void setup(Entry *mqttEntry, Device *device, Config *config, NTPClient *ntp);
 
     void handleRoot();
+    void handleRestAll();
     void handleRest();
     void handleSaveConfig();
     void handleNotFound();

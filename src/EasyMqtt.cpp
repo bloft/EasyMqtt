@@ -129,15 +129,6 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["name"] << [this]() {
     return (String)config().get("device.name", deviceId.c_str());
   };
-  get("$system")["config"] << [this]() {
-    String cfg = "[";
-    each([&](Entry* entry) {
-      if(entry->isOut() || entry->isIn()) {
-        cfg += "\"" + entry->getTopic() + "\", ";
-      }
-    });
-    return cfg + "]";
-  };
   get("$system")["wifi"]["rssi"] << []() {
     return WiFi.RSSI();
   };
