@@ -3,12 +3,13 @@
 #include <functional>
 #include <Arduino.h>
 
-enum EntryType { text, number };
+enum EntryType { text, number, onOff };
 
 inline const char* ToString(EntryType v) {
   switch(v) {
-    case text: return "text";
+    case text: return "string";
     case number: return "number";
+    case onOff: return "switch";
   }
 }
 
@@ -43,7 +44,7 @@ class Entry {
     Entry *setParent(Entry& parent);
     Entry* addChild(Entry* child);
     void setPublishFunction(std::function<void(Entry*, String)> function);
-    
+
   public:
     void debug(String key, bool value);
     void debug(String key, int value);
@@ -51,7 +52,7 @@ class Entry {
     void debug(String msg);
 
     void callback(const char* topic, uint8_t* payload, unsigned int length);
-    
+
     /**
      * Request a updated value if needed
      */
@@ -82,7 +83,7 @@ class Entry {
     bool setValue(const char *value, bool force = false);
 
     /**
-     * 
+     *
      */
     long getLastUpdate();
 
@@ -91,7 +92,7 @@ class Entry {
      */
     void publish(const char *message);
     void publish(String message);
-    
+
     /**
      * Iterate over each child, including sub children
      */

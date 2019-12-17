@@ -76,7 +76,7 @@ void EasyMqtt::connectMqtt() {
         }
       });
 
-      debug("Topic", getTopic()); 
+      debug("Topic", getTopic());
 
       each([&](Entry* entry){
         if (entry->isOut()) {
@@ -116,7 +116,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   }
   ArduinoOTA.setHostname(deviceId.c_str());
   ArduinoOTA.begin();
-  
+
   setInterval(60, 10); // Check every 1 min and force update after 10 unchanged
 
   get("$system").setInterval(300, 3); // every 5 min and force after 3 unchanged
@@ -179,6 +179,30 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
       debug("Restart");
       ESP.restart();
     }
+  };
+
+  // Auto discover
+  get("$system")["openhab"] << [this]() {
+    String json = "{";
+    json += sprintf("id:'%s',label:'%s',properties:{},channels:[", deviceId, config().get("device.name", deviceId.c_str()));
+    each([&](Entry* entry) {
+      if(!entry->isInternal()) {
+        String name = entry->getTopic();
+        name.replace(getTopic(), "");
+        name.replace(".", "_");
+
+        json += sprintf("{type:'%s',id:'%s',label:'%s'", ToString(entry->getType()), name.c_str(), name.c_str());
+        if(entry->isIn()) {
+          json += sprintf("stateTopic:'%s',", entry->getTopic());
+        }
+        if(entry->isOut()) {
+          json += sprintf("commandTopic:'%s',", entry->getTopic());
+        }
+        json += "},"
+      }
+    }
+    json += "]}";
+    return json;
   };
 
   // Publish type of all entries
