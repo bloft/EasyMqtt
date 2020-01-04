@@ -5,12 +5,13 @@
 
 enum EntryType { text, number, onOff };
 
-inline const char* ToString(EntryType v) {
+inline const char* toString(EntryType v) {
   switch(v) {
     case text: return "string";
     case number: return "number";
     case onOff: return "switch";
   }
+  return nullptr;
 }
 
 class Entry {

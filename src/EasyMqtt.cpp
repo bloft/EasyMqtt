@@ -184,34 +184,39 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   // Auto discover
   get("$system")["openhab"] << [this]() {
     String json = "{";
-    json += sprintf("id:'%s',label:'%s',properties:{},channels:[", deviceId, config().get("device.name", deviceId.c_str()));
+    json += "id:'";
+    json += getDeviceId();
+    json += "',label:'";
+    json += config().get("device.name", deviceId.c_str());
+    json += "',properties:{},channels:[";
     each([&](Entry* entry) {
       if(!entry->isInternal()) {
         String name = entry->getTopic();
         name.replace(getTopic(), "");
         name.replace(".", "_");
 
-        json += sprintf("{type:'%s',id:'%s',label:'%s'", ToString(entry->getType()), name.c_str(), name.c_str());
+        json += "{type:'";
+        json += toString(entry->getType());
+        json += "',id:'";
+        json += name;
+        json += "',label:'";
+        json += name;
+        json += "'";
         if(entry->isIn()) {
-          json += sprintf("stateTopic:'%s',", entry->getTopic());
+          json += "stateTopic:'";
+          json += entry->getTopic();
+          json += "'";
         }
         if(entry->isOut()) {
-          json += sprintf("commandTopic:'%s',", entry->getTopic());
+          json += "commandTopic:'";
+          json += entry->getTopic();
+          json += "'";
         }
-        json += "},"
-      }
-    }
-    json += "]}";
-    return json;
-  };
-
-  // Publish type of all entries
-  get("$system")["discover"] >> [this](String value) {
-    each([&](Entry* entry) {
-      if(mqttClient.connected()) {
-        mqttClient.publish((entry->getTopic() + "/$type").c_str(), ToString(entry->getType()), true);
+        json += "},";
       }
     });
+    json += "]}";
+    return json;
   };
 
   get("$system")["reset"] >> [this](String value) {

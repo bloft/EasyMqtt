@@ -79,7 +79,7 @@ void Entry::debug(String msg) {
 void Entry::callback(const char* topic, uint8_t* payload, unsigned int length) {
   if (strcmp(getTopic().c_str(), topic) == 0) {
     String _payload = "";
-    for (int i = 0; i < length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
       _payload += (char)payload[i];
     }
     if(!isIn() || (millis() - lastPublish) > 1000 || strcmp(lastValue, _payload.c_str()) != 0) {

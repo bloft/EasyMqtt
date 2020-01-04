@@ -19,7 +19,7 @@ class EasyMqtt : public Entry {
     Device* deviceList;
 
     String deviceId = "deviceId";
-    long mqttDelay = 0;
+    unsigned long mqttDelay = 0;
 
   protected:
     /**

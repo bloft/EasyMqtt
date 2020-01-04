@@ -165,11 +165,11 @@ String WebPortal::toJson(Entry *entry) {
       json += "\"value\":null,";
     } else {
       switch(entry->getType()) {
-        case text:
-          json += "\"value\":\"" + String(entry->getValue()) + "\",";
-          break;
         case number:
           json += "\"value\":" + String(entry->getValue()) + ",";
+          break;
+        default:
+          json += "\"value\":\"" + String(entry->getValue()) + "\",";
           break;
       }
     }
@@ -181,7 +181,7 @@ String WebPortal::toJson(Entry *entry) {
   if(entry->isInternal()) {
     json += "\"internal\":\"true\",";
   }
-  json += "\"type\":\"" + String(ToString(entry->getType())) + "\""; 
+  json += "\"type\":\"" + String(toString(entry->getType())) + "\""; 
   json += "}";
   return json;
 }
