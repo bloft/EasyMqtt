@@ -226,7 +226,6 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
       }
     });
     json += "]}";
-    Serial.println(json.c_str());
     return json;
   };
 
