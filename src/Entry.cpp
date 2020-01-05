@@ -218,6 +218,17 @@ void Entry::publish(String message) {
   publish(message.c_str());
 }
 
+String Entry::eachToString(std::function<String(Entry*)> f) {
+  String res = "";
+  res += f(this);
+  Entry* child = children;
+  while (child != NULL) {
+    res += child->eachToString(f);
+    child = child->next;
+  }
+  return res;
+}
+
 void Entry::each(std::function<void(Entry*)> f) {
   f(this);
   Entry* child = children;
@@ -249,19 +260,19 @@ Entry & Entry::operator[](const char* name) {
 }
 
 void Entry::operator<<(std::function<String()> inFunction) {
-  type = text;
+  type = EntryType::text;
   Entry::inFunction = inFunction;
 }
 
 void Entry::operator<<(std::function<char *()> inFunction) {
-  type = text;
+  type = EntryType::text;
   Entry::inFunction = [&, inFunction]() {
     return String(inFunction());
   };
 }
 
 void Entry::operator<<(std::function<double()> inFunction) {
-  type = number;
+  type = EntryType::number;
   Entry::inFunction = [&, inFunction]() {
     double value = inFunction();
     if(isnan(value)) {
@@ -270,6 +281,20 @@ void Entry::operator<<(std::function<double()> inFunction) {
       return String(value);
     }
   };
+}
+
+void Entry::onOff(std::function<char *()> inFunction) {
+  type = EntryType::onOff;
+  Entry::inFunction = [&, inFunction]() {
+    char *value = inFunction();
+    // ToDo: Validate value
+    return value;
+  };
+}
+
+void Entry::onOff(std::function<void(String payload)> outFunction) {
+  type = EntryType::onOff;
+  Entry::outFunction = outFunction;
 }
 
 void Entry::operator>>(std::function<void(String payload)> outFunction) {

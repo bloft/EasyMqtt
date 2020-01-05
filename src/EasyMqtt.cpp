@@ -72,7 +72,15 @@ void EasyMqtt::connectMqtt() {
 
       setPublishFunction([&](Entry* entry, String message){
         if(mqttClient.connected()) {
-          mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
+
+          const char *msg = message.c_str();
+          mqttClient.beginPublish(entry->getTopic().c_str(), strlen(msg), true);
+          for (size_t i = 0; i < strlen(msg); i++){
+            mqttClient.write(msg[i]);
+          }
+          mqttClient.endPublish();
+
+          //mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
         }
       });
 
@@ -183,18 +191,18 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
 
   // Auto discover
   get("$system")["openhab"] << [this]() {
-    String json = "{";
+    String json = "{"; 
     json += "id:'";
     json += getDeviceId();
     json += "',label:'";
     json += config().get("device.name", deviceId.c_str());
     json += "',properties:{},channels:[";
+
     each([&](Entry* entry) {
-      if(!entry->isInternal()) {
+      if(!entry->isInternal() && (entry->isIn() || entry->isOut())) {
         String name = entry->getTopic();
         name.replace(getTopic(), "");
-        name.replace(".", "_");
-
+        
         json += "{type:'";
         json += toString(entry->getType());
         json += "',id:'";
@@ -202,20 +210,23 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
         json += "',label:'";
         json += name;
         json += "'";
+
         if(entry->isIn()) {
-          json += "stateTopic:'";
+          json += ",stateTopic:'";
           json += entry->getTopic();
           json += "'";
         }
         if(entry->isOut()) {
-          json += "commandTopic:'";
+          json += ",commandTopic:'";
           json += entry->getTopic();
           json += "'";
         }
+
         json += "},";
       }
     });
     json += "]}";
+    Serial.println(json.c_str());
     return json;
   };
 

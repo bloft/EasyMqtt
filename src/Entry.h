@@ -46,6 +46,8 @@ class Entry {
     Entry* addChild(Entry* child);
     void setPublishFunction(std::function<void(Entry*, String)> function);
 
+    String eachToString(std::function<String(Entry*)> f);
+
   public:
     void debug(String key, bool value);
     void debug(String key, int value);
@@ -120,6 +122,9 @@ class Entry {
     void operator<<(std::function<String()> inFunction);
     void operator<<(std::function<char *()> inFunction);
     void operator<<(std::function<double()> inFunction);
+
+    void onOff(std::function<char *()> inFunction);
+    void onOff(std::function<void(String payload)> outFunction);
 
     /**
      *  Handle data comming from mqtt
