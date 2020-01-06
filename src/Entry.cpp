@@ -297,6 +297,20 @@ void Entry::onOff(std::function<void(String payload)> outFunction) {
   Entry::outFunction = outFunction;
 }
 
+void Entry::openClose(std::function<char *()> inFunction) {
+  type = EntryType::openClose;
+  Entry::inFunction = [&, inFunction]() {
+    char *value = inFunction();
+    // ToDo: Validate value
+    return value;
+  };
+}
+
+void Entry::openClose(std::function<void(String payload)> outFunction) {
+  type = EntryType::openClose;
+  Entry::outFunction = outFunction;
+}
+
 void Entry::operator>>(std::function<void(String payload)> outFunction) {
   Entry::outFunction = outFunction;
 }

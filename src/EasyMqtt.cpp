@@ -152,6 +152,9 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["wifi"]["ip"] << []() {
     return WiFi.localIP().toString();
   };
+  get("$system")["wifi"]["mac"] << []() {
+    return WiFi.macAddress();
+  };
 
   get("$system")["mem"]["heap"] << []() {
     return ESP.getFreeHeap();
@@ -195,7 +198,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     json += "id:'";
     json += getDeviceId();
     json += "',label:'";
-    json += config().get("device.name", deviceId.c_str());
+    json += config().get("device.name", getDeviceId().c_str());
     json += "',properties:{},channels:[";
 
     each([&](Entry* entry) {

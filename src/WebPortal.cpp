@@ -247,6 +247,8 @@ void WebPortal::loop() {
   webServer->handleClient();
 }
 
+// https://github.com/SensorsIot/NTP-time-for-ESP8266-and-ESP32/blob/master/NTP_Example/NTP_Example.ino
+// https://remotemonitoringsystems.ca/time-zone-abbreviations.php
 String WebPortal::time(long time) {
   double utcOffset = config->getDouble("time.offset", 2);
 

@@ -3,13 +3,14 @@
 #include <functional>
 #include <Arduino.h>
 
-enum EntryType { text, number, onOff };
+enum EntryType { text, number, onOff, openClose };
 
 inline const char* toString(EntryType v) {
   switch(v) {
     case text: return "string";
     case number: return "number";
     case onOff: return "switch";
+    case openClose: return "contact";
   }
   return nullptr;
 }
@@ -125,6 +126,9 @@ class Entry {
 
     void onOff(std::function<char *()> inFunction);
     void onOff(std::function<void(String payload)> outFunction);
+
+    void openClose(std::function<char *()> inFunction);
+    void openClose(std::function<void(String payload)> outFunction);
 
     /**
      *  Handle data comming from mqtt
