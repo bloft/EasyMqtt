@@ -3,7 +3,7 @@
 #include <functional>
 #include <Arduino.h>
 
-enum EntryType { text, number, onOff, openClose };
+enum EntryType { text, number, onOff, openClose, dimmer, rollershutter, colorRGB };
 
 inline const char* toString(EntryType v) {
   switch(v) {
@@ -11,6 +11,9 @@ inline const char* toString(EntryType v) {
     case number: return "number";
     case onOff: return "switch";
     case openClose: return "contact";
+    case dimmer: return "dimmer";
+    case rollershutter: return "rollershutter";
+    case colorRGB: return "colorRGB";
   }
   return nullptr;
 }
@@ -77,6 +80,7 @@ class Entry {
     void setPersist(bool persist);
 
     EntryType getType();
+    void setType(EntryType type);
 
     int getForce();
 
@@ -129,6 +133,8 @@ class Entry {
 
     void openClose(std::function<char *()> inFunction);
     void openClose(std::function<void(String payload)> outFunction);
+
+    void color(std::function<void(uint8_t red, uint8_t green, uint8_t blue)> outFunction);
 
     /**
      *  Handle data comming from mqtt

@@ -171,6 +171,10 @@ EntryType Entry::getType() {
   return type;
 }
 
+void Entry::setType(EntryType type) {
+  this->type = type;
+}
+
 int Entry::getForce() {
   if(forceUpdate < 0) {
     return parent->getForce();
@@ -309,6 +313,14 @@ void Entry::openClose(std::function<char *()> inFunction) {
 void Entry::openClose(std::function<void(String payload)> outFunction) {
   type = EntryType::openClose;
   Entry::outFunction = outFunction;
+}
+
+void Entry::color(std::function<void(uint8_t red, uint8_t green, uint8_t blue)> outFunction) {
+  type = EntryType::colorRGB;
+  Entry::outFunction = [&, outFunction](String payload) {
+    // ToDo: parse payload and asign r, g, b
+    outFunction(0, 0, 0);
+  };
 }
 
 void Entry::operator>>(std::function<void(String payload)> outFunction) {

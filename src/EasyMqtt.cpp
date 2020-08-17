@@ -199,6 +199,8 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     json += getDeviceId();
     json += "',label:'";
     json += config().get("device.name", getDeviceId().c_str());
+    json += "',payloadAvailabl:'ON',payloadNotAvailable:'OFF',availabilityTopic:'";
+    json += get("$system")["online"]->getTopic();
     json += "',properties:{},channels:[";
 
     each([&](Entry* entry) {
