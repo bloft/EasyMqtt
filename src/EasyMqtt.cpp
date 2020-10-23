@@ -204,7 +204,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     json += "',properties:{},channels:[";
 
     each([&](Entry* entry) {
-      if(!entry->isInternal() && (entry->isIn() || entry->isOut())) {
+      if(!entry->isInternal() && (entry->isIn() || entry->isOut()) && !entry->isSetter()) {
         String name = entry->getTopic();
         name.replace(getTopic(), "");
         
@@ -224,6 +224,10 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
         if(entry->isOut()) {
           json += ",commandTopic:'";
           json += entry->getTopic();
+          json += "'";
+        } else if (entry->contains("set") && entry->get("set").isSetter()) {
+          json += ",commandTopic:'";
+          json += entry->get("set")->getTopic();
           json += "'";
         }
 

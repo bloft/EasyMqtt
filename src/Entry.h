@@ -68,6 +68,7 @@ class Entry {
 
     bool isIn();
     bool isOut();
+    bool isSetter();
     bool isRoot();
     bool isInternal();
 
@@ -105,6 +106,11 @@ class Entry {
      * Iterate over each child, including sub children
      */
     void each(std::function<void(Entry*)> f);
+
+    /**
+     * Check if a child with name exists
+     */
+    bool contains(const char* name);
 
     /**
      * Create or get the sub topic with the name {name}

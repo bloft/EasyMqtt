@@ -13,6 +13,17 @@ Entry::Entry(const char* name) {
   strcpy(Entry::name, name);
 }
 
+bool Entry::contains(const char* name) {
+  Entry *child = children;
+  while (child != NULL) {
+    if (strcmp(child->name, name) == 0) {
+      return true;
+    }
+    child = child->next;
+  }
+  return false;
+}
+
 Entry *Entry::getOrCreate(const char* name) {
   Entry *child = children;
   while (child != NULL) {
@@ -108,6 +119,10 @@ void Entry::update(String payload) {
   if (isOut()) {
     outFunction(payload);
   }
+}
+
+bool Entry::isSetter() {
+  return isOut() && strcmp(name, "set") == 0;
 }
 
 bool Entry::isIn() {
