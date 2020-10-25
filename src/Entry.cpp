@@ -178,6 +178,7 @@ void Entry::setPersist(bool persist) {
     if (f) {
       setValue(f.readStringUntil('\n').c_str(), true);
       f.close();
+      update(String(getValue()));
     }
   }
 }
@@ -333,6 +334,8 @@ void Entry::openClose(std::function<void(String payload)> outFunction) {
 void Entry::color(std::function<void(uint8_t red, uint8_t green, uint8_t blue)> outFunction) {
   type = EntryType::colorRGB;
   Entry::outFunction = [&, outFunction](String payload) {
+    //payload.substring(0, payload.indexOf(',')).toInt();
+    //payload.substring(payload.indexOf(','), payload.lastIndexOf(','));
     // ToDo: parse payload and asign r, g, b
     outFunction(0, 0, 0);
   };
@@ -340,4 +343,11 @@ void Entry::color(std::function<void(uint8_t red, uint8_t green, uint8_t blue)> 
 
 void Entry::operator>>(std::function<void(String payload)> outFunction) {
   Entry::outFunction = outFunction;
+}
+
+void Entry::operator>>(std::function<void(long payload)> outFunction) {
+  type = EntryType::number;
+  Entry::outFunction = [&, outFunction](String payload) {
+    outFunction(payload.toInt());
+  };
 }

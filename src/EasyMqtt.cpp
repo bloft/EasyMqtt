@@ -200,7 +200,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     json += "',label:'";
     json += config().get("device.name", getDeviceId().c_str());
     json += "',payloadAvailabl:'ON',payloadNotAvailable:'OFF',availabilityTopic:'";
-    json += get("$system")["online"]->getTopic();
+    json += get("$system").get("online").getTopic();
     json += "',properties:{},channels:[";
 
     each([&](Entry* entry) {
@@ -227,7 +227,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
           json += "'";
         } else if (entry->contains("set") && entry->get("set").isSetter()) {
           json += ",commandTopic:'";
-          json += entry->get("set")->getTopic();
+          json += entry->get("set").getTopic();
           json += "'";
         }
 

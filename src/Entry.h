@@ -146,4 +146,5 @@ class Entry {
      *  Handle data comming from mqtt
      */
     void operator>>(std::function<void(String payload)> outFunction);
+    void operator>>(std::function<void(long payload)> outFunction);
 };
