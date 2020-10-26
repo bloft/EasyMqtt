@@ -44,6 +44,8 @@ class EasyMqtt : public Entry {
 
     NTPClient & ntp();
 
+    String name();
+
     void name(const char* name);
 
     /**

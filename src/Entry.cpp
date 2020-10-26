@@ -107,7 +107,7 @@ void Entry::update() {
       lastUpdate = time;
       String value = inFunction();
       if (value != "") {
-          if(setValue(value.c_str(), force > getForce())) {
+          if(updateValue(value.c_str(), force > getForce())) {
             force = 0;
           }
       }
@@ -178,7 +178,7 @@ void Entry::setPersist(bool persist) {
     if (f) {
       setValue(f.readStringUntil('\n').c_str(), true);
       f.close();
-      update(String(getValue()));
+
     }
   }
 }
@@ -202,24 +202,36 @@ char *Entry::getValue() {
   return lastValue;
 }
 
-bool Entry::setValue(const char *value, bool force) {
+bool Entry::updateValue(const char *value, bool force) {
   if(force || !lastValue || strcmp(value, lastValue) != 0) {
-    lastUpdate = millis();
-    if(lastValue) {
-      free(lastValue);
-    }
-    lastValue = (char*)malloc(strlen(value)+1);
-    strcpy(lastValue, value);
+    setValue(value, false);
     publish(value);
-
-    if(persist) {
-      File f = SPIFFS.open(getTopic(), "w");
-      f.println(value);
-      f.close();
-    } 
     return true;
   }
   return false;
+}
+
+void Entry::setValue(const char *value, bool callUpdate) {
+  lastUpdate = millis();
+  if(lastValue) {
+    free(lastValue);
+  }
+  lastValue = (char*)malloc(strlen(value)+1);
+  strcpy(lastValue, value);
+
+  if(callUpdate) {
+    update(String(lastValue));
+  }
+
+  if(persist) {
+    File f = SPIFFS.open(getTopic(), "w");
+    f.println(value);
+    f.close();
+  }
+}
+
+void Entry::setValue(String value, bool callUpdate) {
+  setValue(value.c_str(), callUpdate);
 }
 
 long Entry::getLastUpdate() {
@@ -266,6 +278,12 @@ Entry & Entry::get(const char* name) {
     subName = strtok(NULL, "/");
   }
   return *entry;
+}
+
+void Entry::reportValue() {
+  inFunction = [&]() {
+    return String(getValue());
+  };
 }
 
 Entry & Entry::operator[](int index) {
@@ -334,10 +352,14 @@ void Entry::openClose(std::function<void(String payload)> outFunction) {
 void Entry::color(std::function<void(uint8_t red, uint8_t green, uint8_t blue)> outFunction) {
   type = EntryType::colorRGB;
   Entry::outFunction = [&, outFunction](String payload) {
-    //payload.substring(0, payload.indexOf(',')).toInt();
-    //payload.substring(payload.indexOf(','), payload.lastIndexOf(','));
-    // ToDo: parse payload and asign r, g, b
-    outFunction(0, 0, 0);
+    int commaIndex = payload.indexOf(',');
+    int secondCommaIndex = payload.indexOf(',', commaIndex + 1);
+
+    String firstValue = payload.substring(0, commaIndex);
+    String secondValue = payload.substring(commaIndex + 1, secondCommaIndex);
+    String thirdValue = payload.substring(secondCommaIndex + 1);
+
+    outFunction(firstValue.toInt(), secondValue.toInt(), thirdValue.toInt());
   };
 }
 

@@ -89,7 +89,18 @@ class Entry {
      * Get last value
      */
     char *getValue();
-    bool setValue(const char *value, bool force = false);
+
+    /**
+     * Set the current value
+     */
+    void setValue(const char *value, bool callUpdate = true);
+    void setValue(String value, bool callUpdate = true);
+
+    /**
+     * Update the value if change to force is true
+     * This will also publis the value if it hash been changed
+     */
+    bool updateValue(const char *value, bool force = false);
 
     /**
      *
@@ -126,6 +137,11 @@ class Entry {
      * Create or get the sub topic with the name {name}
      */
     Entry & operator[](const char* name);
+
+    /**
+     * Report value at internal, and show value in UI
+     */
+    void reportValue();
 
     /**
      *  Read data from function and send it to mqtt

@@ -125,7 +125,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   ArduinoOTA.setHostname(deviceId.c_str());
   ArduinoOTA.begin();
 
-  setInterval(60, 10); // Check every 1 min and force update after 10 unchanged
+  setInterval(30, 10); // Check every 30 Sec and force update after 10 (5 min) unchanged
 
   get("$system").setInterval(300, 3); // every 5 min and force after 3 unchanged
   get("$system")["uptime"] << []() {
@@ -135,7 +135,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     return deviceId;
   };
   get("$system")["name"] << [this]() {
-    return (String)config().get("device.name", deviceId.c_str());
+    return name();
   };
   get("$system")["wifi"]["rssi"] << []() {
     return WiFi.RSSI();
@@ -198,7 +198,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     json += "id:'";
     json += getDeviceId();
     json += "',label:'";
-    json += config().get("device.name", getDeviceId().c_str());
+    json += name();
     json += "',payloadAvailabl:'ON',payloadNotAvailable:'OFF',availabilityTopic:'";
     json += get("$system").get("online").getTopic();
     json += "',properties:{},channels:[";
@@ -247,10 +247,6 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["reset"]["reason"] << [this]() {
     return ESP.getResetReason();
   };
-
-  get("$system")["reset"]["reason"] << [this]() {
-    return ESP.getResetReason();
-  };
 }
 
 String EasyMqtt::getDeviceId() {
@@ -267,6 +263,10 @@ Config & EasyMqtt::config() {
 
 NTPClient & EasyMqtt::ntp() {
   return *ntpClient;
+}
+
+String EasyMqtt::name() {
+  return config().get("device.name", getDeviceId().c_str());
 }
 
 /**
