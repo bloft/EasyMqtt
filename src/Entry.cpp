@@ -1,6 +1,8 @@
 #include "Entry.h"
 #include <FS.h>
 
+//#define DEBUG
+
 std::function<void(Entry*, String)> Entry::getPublishFunction() {
   if(publishFunction == NULL && parent) {
     return parent->getPublishFunction();
@@ -94,7 +96,7 @@ void Entry::callback(const char* topic, uint8_t* payload, unsigned int length) {
       _payload += (char)payload[i];
     }
     if(!isIn() || (millis() - lastPublish) > 1000 || strcmp(lastValue, _payload.c_str()) != 0) {
-      update(_payload);
+      setValue(_payload, true);
     }
   }
 }

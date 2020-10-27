@@ -5,38 +5,34 @@
 #include <ArduinoOTA.h>
 #include <FS.h>
 
-
 /**
   * Handle connections to mqtt
   */
 void EasyMqtt::connectWiFi() {
-  if(WiFi.status() != WL_CONNECTED) {
-    debug("Connecting to wifi");
+  if(WiFi.getMode() == WIFI_AP && wifiDelay < millis()) {
+    disconnectWiFi();
     WiFi.mode(WIFI_STA);
-
-    WiFi.begin(config().get("wifi.ssid", ""), config().get("wifi.password", ""));
-
-#ifdef DEBUG
-    WiFi.printDiag(Serial);
-#endif
-
-    int timer = 0;
-    while ((WiFi.status() == WL_DISCONNECTED) && timer < 60) {
-      debug("Wifi Status", WiFi.status());
-      delay(500);
-      timer++;
-    }
-    if(timer < 60 && WiFi.status() == WL_CONNECTED) {
+  }
+  if(WiFi.getMode() == WIFI_STA) {
+    if(WiFi.status() != WL_CONNECTED) {
+      if(wifiDelay == 0) {
+        debug("Connecting to wifi");
+        WiFi.begin(config().get("wifi.ssid", ""), config().get("wifi.password", ""));
+        wifiDelay = millis() + 10000; // 10 sec
+      } else if(wifiDelay < millis()) {
+        debug("WiFi connection timeout - Setup AP");
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP("EasyMqtt", "123456");
+        debug("IP address", WiFi.softAPIP().toString());
+        wifiDelay = millis() + 300000; // 5 min
+      }
+    } else if (wifiDelay != 0) {
+      wifiDelay = 0;
       debug("WiFi connected");
       debug("IP address", WiFi.localIP().toString());
-    } else {
-      debug("WiFi connection timeout - Setup AP");
-      WiFi.mode(WIFI_AP);
-      WiFi.softAP("EasyMqtt", "123456");
-      debug("IP address", WiFi.softAPIP().toString());
+      debug("devideId", deviceId);
+      webPortal.setup(this, deviceList, &config(), &ntp());
     }
-    debug("devideId", deviceId);
-    webPortal.setup(this, deviceList, &config(), &ntp());
   }
 }
 
@@ -49,6 +45,7 @@ void EasyMqtt::disconnectWiFi() {
       delay(10);
       timeout++;
     }
+    wifiDelay = 0;
   }
 }
 
@@ -103,10 +100,6 @@ void EasyMqtt::connectMqtt() {
 }
 
 EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
-#ifdef DEBUG
-  Serial.begin(115200);
-#endif
-
   // Add config entry
   cfg = new Config();
   cfg->load();
@@ -299,8 +292,8 @@ void EasyMqtt::mqtt(const char* host, int port, const char* username, const char
   */
 void EasyMqtt::loop() {
   connectWiFi();
-  ArduinoOTA.handle();
   if(WiFi.status() == WL_CONNECTED) {
+    ArduinoOTA.handle();
     connectMqtt();
     if(mqttClient.connected()) {
       mqttClient.loop();

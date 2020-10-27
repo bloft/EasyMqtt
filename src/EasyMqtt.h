@@ -20,6 +20,7 @@ class EasyMqtt : public Entry {
 
     String deviceId = "deviceId";
     unsigned long mqttDelay = 0;
+    unsigned long wifiDelay = 0;
 
   protected:
     /**
