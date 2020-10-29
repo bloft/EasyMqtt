@@ -49,6 +49,11 @@ class EasyMqtt : public Entry {
 
     void name(const char* name);
 
+   /*
+   * Reset all stored values
+   */
+   void reset();
+
     /**
        Configure wifi
        Deprecated

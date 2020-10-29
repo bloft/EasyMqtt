@@ -75,10 +75,14 @@ class Entry {
     virtual String getTopic();
 
     int getInterval();
-    void setInterval(int interval);
-    void setInterval(int interval, int force);
+    void setInterval(int interval, int force = 1);
 
     void setPersist(bool persist);
+
+    /**
+     * Reset a persisted value
+     */
+    void reset();
 
     EntryType getType();
     void setType(EntryType type);
@@ -100,7 +104,7 @@ class Entry {
      * Update the value if change to force is true
      * This will also publis the value if it hash been changed
      */
-    bool updateValue(const char *value, bool force = false);
+    bool updateValue(const char *value, bool force = true, bool callUpdate = true);
 
     /**
      *

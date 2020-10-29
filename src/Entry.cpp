@@ -1,7 +1,7 @@
 #include "Entry.h"
 #include <FS.h>
 
-//#define DEBUG
+#define DEBUG
 
 std::function<void(Entry*, String)> Entry::getPublishFunction() {
   if(publishFunction == NULL && parent) {
@@ -109,7 +109,7 @@ void Entry::update() {
       lastUpdate = time;
       String value = inFunction();
       if (value != "") {
-          if(updateValue(value.c_str(), force > getForce())) {
+          if(updateValue(value.c_str(), force > getForce(), false)) {
             force = 0;
           }
       }
@@ -163,11 +163,6 @@ int Entry::getInterval() {
   return interval;
 }
 
-void Entry::setInterval(int interval) {
-  this->interval = interval;
-  forceUpdate = 1;
-}
-
 void Entry::setInterval(int interval, int force) {
   this->interval = interval;
   forceUpdate = force;
@@ -183,6 +178,10 @@ void Entry::setPersist(bool persist) {
 
     }
   }
+}
+
+void Entry::reset() {
+  SPIFFS.remove(getTopic());
 }
 
 EntryType Entry::getType() {
@@ -204,9 +203,9 @@ char *Entry::getValue() {
   return lastValue;
 }
 
-bool Entry::updateValue(const char *value, bool force) {
+bool Entry::updateValue(const char *value, bool force, bool callUpdate) {
   if(force || !lastValue || strcmp(value, lastValue) != 0) {
-    setValue(value, false);
+    setValue(value, callUpdate);
     publish(value);
     return true;
   }

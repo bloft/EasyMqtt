@@ -9,7 +9,7 @@
   * Handle connections to mqtt
   */
 void EasyMqtt::connectWiFi() {
-  if(WiFi.getMode() == WIFI_AP && wifiDelay < millis()) {
+  if(WiFi.getMode() != WIFI_STA && wifiDelay < millis()) {
     disconnectWiFi();
     WiFi.mode(WIFI_STA);
   }
@@ -233,7 +233,7 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
 
   get("$system")["reset"] >> [this](String value) {
     if(strcmp(config().get("password", ""), value.c_str()) == 0) {
-      config().reset();
+      reset();
     }
   };
 
@@ -267,6 +267,13 @@ String EasyMqtt::name() {
   */
 void EasyMqtt::name(const char* name) {
   config().get("device.name", name);
+}
+
+void EasyMqtt::reset() {
+  config().reset();
+  each([](Entry* entry){
+    entry->reset();
+  });
 }
 
 /**

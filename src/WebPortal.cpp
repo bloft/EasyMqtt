@@ -215,7 +215,7 @@ void WebPortal::handleRest() {
   if(webServer->method() == HTTP_GET) {
     webServer->send(200, "application/json", toJson(entry));
   } else if(webServer->method() == HTTP_POST && entry->isOut()) {
-    entry->setValue(webServer->arg("plain").c_str());
+    entry->updateValue(webServer->arg("plain").c_str(), true, true);
     webServer->send(200, "text/plain", webServer->uri() + " Update");
   } else {
     webServer->send(404, "text/plain", "Unsupported");
