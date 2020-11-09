@@ -11,8 +11,8 @@ String WebPortal::getName(Entry* root, Entry* entry) {
   return path;
 }
 
-String WebPortal::getRestPath(Entry* entry) {
-  return "/rest" + getName(entry);
+String WebPortal::getRestPath(String path, Entry* entry) {
+  return "" + path + getName(entry);
 }
 
 WebPortal::WebPortal() {
@@ -29,7 +29,10 @@ void WebPortal::setup(Entry *mqttEntry, Device *device, Config *config, NTPClien
   webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
   webServer->on("/rest", std::bind(&WebPortal::handleRestAll, this));
   mqtt->each([&](Entry* entry) {
-    webServer->on(getRestPath(entry).c_str(), std::bind(&WebPortal::handleRest, this));
+    webServer->on(getRestPath("/rest", entry).c_str(), std::bind(&WebPortal::handleRest, this));
+  });
+  mqtt->each([&](Entry* entry) {
+    webServer->on(getRestPath("/web-rest", entry).c_str(), std::bind(&WebPortal::handleWebRest, this));
   });
   webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
   webServer->begin();
@@ -96,19 +99,26 @@ void WebPortal::sendSensor(Entry* entry) {
   if(value != NULL) {
     include = true;
     page.replace("{output}", FPSTR(HTML_SENSOR_OUTPUT));
-    if(getName(entry).endsWith("password")) {
-      page.replace("{value}", "***");
-    } else {
-      page.replace("{value}", value);
-    }
+    page.replace("{value}", webValue(entry));
   } else {
     page.replace("{output}", "");
   }
   if(include) {
-    page.replace("{path}", getRestPath(entry));
+    page.replace("{path}", getRestPath("/web-rest", entry));
     page.replace("{last_updated}", time(entry->getLastUpdate()));
     webServer->sendContent(page);
   }
+}
+
+String WebPortal::webValue(Entry* entry) {
+  String value = entry->getValue();
+  if(getName(entry).endsWith("password")) {
+    value = "***";
+  }
+  if(entry->getType() == EntryType::colorRGB) {
+    value = "<div style='background-color: red' class='color-box' />" + value;
+  }
+  return value;
 }
 
 void WebPortal::sendDevices() {
@@ -151,14 +161,14 @@ void WebPortal::sendMqttApi(Entry* entry) {
 
 void WebPortal::sendRestApi(Entry* entry) {
   String page = FPSTR(HTML_API_DOC);
-  String path = getRestPath(entry);
+  String path = getRestPath("/rest", entry);
   if(entry->isIn()) path += "<span class=\"badge\"><a style=\"color: white;\" href=\"" + path + "\">GET</a></span>";
   if(entry->isOut()) path += "<span class=\"badge\">POST</span>";
   page.replace("{path}", path);
   webServer->sendContent(page);
 }
 
-String WebPortal::toJson(Entry *entry) {
+String WebPortal::toJson(Entry *entry, bool isWeb) {
   String json = "{";
   if(entry->isIn()) {
     if(!entry->getValue()) {
@@ -172,6 +182,9 @@ String WebPortal::toJson(Entry *entry) {
           json += "\"value\":\"" + String(entry->getValue()) + "\",";
           break;
       }
+    }
+    if(isWeb) {
+      json += "\"update\":\"" + webValue(entry) + "\",";  
     }
     json += "\"updated\":\"" + time(entry->getLastUpdate()) + "\",";
   }
@@ -199,7 +212,7 @@ void WebPortal::handleRestAll() {
       if(entry->isIn() || entry->isOut()) {
         if(!first) result += ",";
         first = false;
-        result += "\"" + getName(entry) + "\":" +  toJson(entry);
+        result += "\"" + getName(entry) + "\":" +  toJson(entry, false);
       }
     });
     result += "}}";
@@ -210,10 +223,18 @@ void WebPortal::handleRestAll() {
 }
 
 void WebPortal::handleRest() {
+  restHandler(false);
+}
+
+void WebPortal::handleWebRest() {
+  restHandler(true);
+}
+
+void WebPortal::restHandler(bool isWeb) {
   if(!auth()) return;
   Entry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
   if(webServer->method() == HTTP_GET) {
-    webServer->send(200, "application/json", toJson(entry));
+    webServer->send(200, "application/json", toJson(entry, isWeb));
   } else if(webServer->method() == HTTP_POST && entry->isOut()) {
     entry->updateValue(webServer->arg("plain").c_str(), true, true);
     webServer->send(200, "text/plain", webServer->uri() + " Update");

@@ -19,7 +19,7 @@ class WebPortal {
     String getName(Entry* entry);
     String getName(Entry* root, Entry* entry);
 
-    String getRestPath(Entry* entry);
+    String getRestPath(String path, Entry* entry);
 
     String time(long time);
     bool auth();
@@ -30,7 +30,8 @@ class WebPortal {
     void sendMqttApi(Entry* entry);
     void sendRestApi(Entry* entry);
 
-    String toJson(Entry* entry);
+    String toJson(Entry* entry, bool isWeb);
+    String webValue(Entry* entry);
 
   public:
     WebPortal();
@@ -40,6 +41,8 @@ class WebPortal {
     void handleRoot();
     void handleRestAll();
     void handleRest();
+    void handleWebRest();
+    void restHandler(bool isWeb);
     void handleSaveConfig();
     void handleNotFound();
 
