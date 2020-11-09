@@ -200,11 +200,16 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
       if(!entry->isInternal() && (entry->isIn() || entry->isOut()) && !entry->isSetter()) {
         String name = entry->getTopic();
         name.replace(getTopic(), "");
+        String id = name;
+        if(id.startsWith("/")) {
+          id = id.substring(1);
+        }
+        id.replace("/", "-");
         
         json += "{type:'";
         json += toString(entry->getType());
         json += "',id:'";
-        json += name;
+        json += id;
         json += "',label:'";
         json += name;
         json += "'";
