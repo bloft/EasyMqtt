@@ -1,12 +1,11 @@
 #include "EasyMqtt.h"
 
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
 #include <ArduinoOTA.h>
 #include <FS.h>
 
 /**
-  * Handle connections to mqtt
+  * Handle connections to wifi
   */
 void EasyMqtt::connectWiFi() {
   if(WiFi.getMode() != WIFI_STA && wifiDelay < millis()) {
@@ -32,6 +31,10 @@ void EasyMqtt::connectWiFi() {
       debug("IP address", WiFi.localIP().toString());
       debug("devideId", deviceId);
       webPortal.setup(this, deviceList, &config(), &ntp());
+
+      if(smartthingsHandler) {
+        smartthingsHandler->setup(this, &config(), getName());
+      }
     }
   }
 }
@@ -49,6 +52,7 @@ void EasyMqtt::disconnectWiFi() {
   }
 }
 
+/*
 void EasyMqtt::connectMqtt() {
   if (!mqttClient.connected() && mqttDelay < millis()) {
     debug("Connecting to MQTT");
@@ -98,6 +102,7 @@ void EasyMqtt::connectMqtt() {
     }
   }
 }
+*/
 
 EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   // Add config entry
@@ -245,6 +250,10 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   get("$system")["reset"]["reason"] << [this]() {
     return ESP.getResetReason();
   };
+
+  setPublishFunction([&](Entry* entry, String message){
+    publish(entry, message);
+  });
 }
 
 String EasyMqtt::getDeviceId() {
@@ -253,6 +262,10 @@ String EasyMqtt::getDeviceId() {
 
 String EasyMqtt::getTopic() {
   return String("easyMqtt/") + deviceId;
+}
+
+String EasyMqtt::getName() {
+  return String(deviceId);
 }
 
 Config & EasyMqtt::config() {
@@ -289,14 +302,16 @@ void EasyMqtt::wifi(const char* ssid, const char* password) {
   config().get("wifi.password", password);
 }
 
-/**
-  Configure mqtt
-  */
-void EasyMqtt::mqtt(const char* host, int port, const char* username, const char* password) {
-  config().get("mqtt.host", host);
-  config().get("mqtt.port", String(port).c_str());
-  config().get("mqtt.username", username);
-  config().get("mqtt.password", password);
+void EasyMqtt::smartthings(String ns, String deviceHandler) {
+  smartthingsHandler = new Smartthings(ns, deviceHandler);
+
+}
+
+void EasyMqtt::publish(Entry* entry, String message) {
+  debug("Publish", entry->getName());
+  if(smartthingsHandler) {
+    smartthingsHandler->publish();
+  }
 }
 
 /**
@@ -306,11 +321,19 @@ void EasyMqtt::loop() {
   connectWiFi();
   if(WiFi.status() == WL_CONNECTED) {
     ArduinoOTA.handle();
+    
+    /*
     connectMqtt();
     if(mqttClient.connected()) {
       mqttClient.loop();
     }
+    */
+   
     webPortal.loop();
+    if(smartthingsHandler) {
+      smartthingsHandler->loop();
+    }
+
     each([](Entry* entry){
       entry->update();
     });

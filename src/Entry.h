@@ -74,7 +74,13 @@ class Entry {
 
     virtual String getTopic();
 
+    virtual String getName();
+
     int getInterval();
+
+    /**
+     * Set check internal in seconds, and number on intervals for a force update
+     */
     void setInterval(int interval, int force = 1);
 
     void setPersist(bool persist);

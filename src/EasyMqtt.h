@@ -1,25 +1,24 @@
 #pragma once
 
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
 #include "Entry.h"
 #include "Config.h"
 #include "Device.h"
 #include "WebPortal.h"
 #include "NTPClient.h"
+#include "Smartthings.h"
 
 class EasyMqtt : public Entry {
   private:
     WiFiClient wifiClient;
-    PubSubClient mqttClient;
     WebPortal webPortal;
+    Smartthings *smartthingsHandler = NULL;
 
     Config* cfg;
     NTPClient* ntpClient;
     Device* deviceList;
 
     String deviceId = "deviceId";
-    unsigned long mqttDelay = 0;
     unsigned long wifiDelay = 0;
 
   protected:
@@ -29,10 +28,7 @@ class EasyMqtt : public Entry {
     void connectWiFi();
     void disconnectWiFi();
 
-    /**
-       Handle connections to mqtt
-    */
-    void connectMqtt();
+    void publish(Entry* entry, String message);
 
   public:
     EasyMqtt();
@@ -40,6 +36,8 @@ class EasyMqtt : public Entry {
     String getDeviceId();
     
     virtual String getTopic();
+
+    virtual String getName();
 
     Config & config();
 
@@ -60,11 +58,7 @@ class EasyMqtt : public Entry {
     */
     void wifi(const char* ssid, const char* password);
 
-    /**
-       Configure mqtt
-       Deprecated
-    */
-    void mqtt(const char* host, int port, const char* username, const char* password);
+    void smartthings(String ns, String deviceHandler);
 
     /**
        Handle the normal loop
