@@ -3,20 +3,20 @@
 #include <ESP8266WiFi.h>
 #include "Entry.h"
 #include "Config.h"
-#include "Device.h"
 #include "WebPortal.h"
 #include "NTPClient.h"
 #include "Smartthings.h"
+#include "Mqtt.h"
 
-class EasyMqtt : public Entry {
+class EasyIoT : public Entry {
   private:
     WiFiClient wifiClient;
     WebPortal webPortal;
     Smartthings *smartthingsHandler = NULL;
+    Mqtt *mqttHandler = NULL;
 
     Config* cfg;
     NTPClient* ntpClient;
-    Device* deviceList;
 
     String deviceId = "deviceId";
     unsigned long wifiDelay = 0;
@@ -31,7 +31,7 @@ class EasyMqtt : public Entry {
     void publish(Entry* entry, String message);
 
   public:
-    EasyMqtt();
+    EasyIoT();
 
     String getDeviceId();
     
@@ -59,6 +59,9 @@ class EasyMqtt : public Entry {
     void wifi(const char* ssid, const char* password);
 
     void smartthings(String ns, String deviceHandler);
+
+    void mqtt();
+    void mqtt(const char* host, int port, const char* username, const char* password);
 
     /**
        Handle the normal loop

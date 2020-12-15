@@ -1,4 +1,4 @@
-#include "EasyMqtt.h"
+#include "EasyIoT.h"
 
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
@@ -7,7 +7,7 @@
 /**
   * Handle connections to wifi
   */
-void EasyMqtt::connectWiFi() {
+void EasyIoT::connectWiFi() {
   if(WiFi.getMode() != WIFI_STA && wifiDelay < millis()) {
     disconnectWiFi();
     WiFi.mode(WIFI_STA);
@@ -21,7 +21,7 @@ void EasyMqtt::connectWiFi() {
       } else if(wifiDelay < millis()) {
         debug("WiFi connection timeout - Setup AP");
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("EasyMqtt", "123456");
+        WiFi.softAP("EasyIoT", "123456");
         debug("IP address", WiFi.softAPIP().toString());
         wifiDelay = millis() + 300000; // 5 min
       }
@@ -30,16 +30,23 @@ void EasyMqtt::connectWiFi() {
       debug("WiFi connected");
       debug("IP address", WiFi.localIP().toString());
       debug("devideId", deviceId);
-      webPortal.setup(this, deviceList, &config(), &ntp());
 
       if(smartthingsHandler) {
         smartthingsHandler->setup(this, &config(), getName());
       }
+
+      if(mqttHandler) {
+        mqttHandler->setup(this, &config(), &wifiClient);
+      }
+
+      webPortal.setup(this, NULL, &config(), &ntp());
+
+      
     }
   }
 }
 
-void EasyMqtt::disconnectWiFi() {
+void EasyIoT::disconnectWiFi() {
   if(WiFi.status() == WL_CONNECTED) {
     WiFi.softAPdisconnect();
     WiFi.disconnect();
@@ -52,64 +59,10 @@ void EasyMqtt::disconnectWiFi() {
   }
 }
 
-/*
-void EasyMqtt::connectMqtt() {
-  if (!mqttClient.connected() && mqttDelay < millis()) {
-    debug("Connecting to MQTT");
-    mqttClient.setClient(wifiClient);
-    mqttClient.setCallback([&](const char* topic, uint8_t* payload, unsigned int length) {
-      if(strncmp(topic, getTopic().c_str(), strlen(getTopic().c_str())) != 0) {
-        deviceList->callback(topic, payload, length);
-      }
-      each([=](Entry* entry){
-        entry->callback(topic, payload, length);
-      });
-    });
-
-    mqttClient.setServer(config().get("mqtt.host", ""), config().getInt("mqtt.port", 1883));
-
-    if (mqttClient.connect(deviceId.c_str(), config().get("mqtt.username", ""), config().get("mqtt.password", ""), get("$system")["online"].getTopic().c_str(), 1, 1, "OFF")) {
-      debug("Connected to MQTT");
-
-      setPublishFunction([&](Entry* entry, String message){
-        if(mqttClient.connected()) {
-
-          const char *msg = message.c_str();
-          mqttClient.beginPublish(entry->getTopic().c_str(), strlen(msg), true);
-          for (size_t i = 0; i < strlen(msg); i++){
-            mqttClient.write(msg[i]);
-          }
-          mqttClient.endPublish();
-
-          //mqttClient.publish(entry->getTopic().c_str(), message.c_str(), true);
-        }
-      });
-
-      debug("Topic", getTopic());
-
-      each([&](Entry* entry){
-        if (entry->isOut()) {
-          mqttClient.subscribe(entry->getTopic().c_str());
-        }
-      });
-
-      // Device list
-      deviceList->subscribe(&mqttClient);
-      mqttDelay = 0;
-    } else {
-      debug("Connection to MQTT failed, rc", mqttClient.state());
-      mqttDelay = millis() + 5000;
-    }
-  }
-}
-*/
-
-EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
+EasyIoT::EasyIoT() : Entry("easyMqtt") {
   // Add config entry
   cfg = new Config();
   cfg->load();
-
-  deviceList = new Device();
 
   // Add time(NTP)
   ntpClient = new NTPClient();
@@ -256,38 +209,38 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   });
 }
 
-String EasyMqtt::getDeviceId() {
+String EasyIoT::getDeviceId() {
   return deviceId;
 }
 
-String EasyMqtt::getTopic() {
+String EasyIoT::getTopic() {
   return String("easyMqtt/") + deviceId;
 }
 
-String EasyMqtt::getName() {
+String EasyIoT::getName() {
   return String(deviceId);
 }
 
-Config & EasyMqtt::config() {
+Config & EasyIoT::config() {
   return *cfg;
 }
 
-NTPClient & EasyMqtt::ntp() {
+NTPClient & EasyIoT::ntp() {
   return *ntpClient;
 }
 
-String EasyMqtt::name() {
+String EasyIoT::name() {
   return config().get("device.name", getDeviceId().c_str());
 }
 
 /**
   Configure name of device
   */
-void EasyMqtt::name(const char* name) {
+void EasyIoT::name(const char* name) {
   config().get("device.name", name);
 }
 
-void EasyMqtt::reset() {
+void EasyIoT::reset() {
   config().reset();
   each([](Entry* entry){
     entry->reset();
@@ -297,41 +250,53 @@ void EasyMqtt::reset() {
 /**
   Configure wifi
   */
-void EasyMqtt::wifi(const char* ssid, const char* password) {
+void EasyIoT::wifi(const char* ssid, const char* password) {
   config().get("wifi.ssid", ssid);
   config().get("wifi.password", password);
 }
 
-void EasyMqtt::smartthings(String ns, String deviceHandler) {
+void EasyIoT::smartthings(String ns, String deviceHandler) {
   smartthingsHandler = new Smartthings(ns, deviceHandler);
-
 }
 
-void EasyMqtt::publish(Entry* entry, String message) {
+void EasyIoT::mqtt() {
+  mqttHandler = new Mqtt();
+}
+
+void EasyIoT::mqtt(const char* host, int port, const char* username, const char* password) {
+  config().get("mqtt.host", host);
+  config().get("mqtt.port", String(port).c_str());
+  config().get("mqtt.username", username);
+  config().get("mqtt.password", password);
+  mqttHandler = new Mqtt();
+}
+
+void EasyIoT::publish(Entry* entry, String message) {
   debug("Publish", entry->getName());
   if(smartthingsHandler) {
     smartthingsHandler->publish();
+  }
+  if(mqttHandler) {
+    mqttHandler->publish(entry, message);
   }
 }
 
 /**
   Handle the normal loop
   */
-void EasyMqtt::loop() {
+void EasyIoT::loop() {
   connectWiFi();
   if(WiFi.status() == WL_CONNECTED) {
     ArduinoOTA.handle();
-    
-    /*
-    connectMqtt();
-    if(mqttClient.connected()) {
-      mqttClient.loop();
-    }
-    */
    
     webPortal.loop();
+
     if(smartthingsHandler) {
       smartthingsHandler->loop();
+    }
+
+    if(mqttHandler) {
+      mqttHandler->loop();
     }
 
     each([](Entry* entry){

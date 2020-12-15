@@ -1,27 +1,28 @@
-# EasyMqtt
-Easy handling of Mqtt on esp8266
+# EasyIoT
+Easy handling of mqtt or Smartthings on esp8266
 
 * Easy wifi configuration using web interface
 * Easy mqtt configuration using web interface
-* Easy configuration of mqtt endpoints
+* Easy configuration of iot endpoints
 * Web based UI to see current values
+* Smartthings discovery
 
-## Examble usage EasyMqtt
+## Examble usage EasyIoT
 ```C++
-#include <EasyMqtt.h>
+#include <EasyIoT.h>
 
-EasyMqtt mqtt;
+EasyIoT iot;
 
 void setup() {
-  mqtt.config().set("foo", "My Foo");
+  iot.config().set("foo", "My Foo");
 
-  mqtt["foo"] << [&](){
-    return String(mqtt.config().get("foo", "default"));
+  iot["foo"] << [&](){
+    return String(iot.config().get("foo", "default"));
   };
 }
 
 void loop() {
-  mqtt.loop();
+  iot.loop();
 }
 
 ```

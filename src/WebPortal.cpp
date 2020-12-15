@@ -122,15 +122,17 @@ String WebPortal::webValue(Entry* entry) {
 }
 
 void WebPortal::sendDevices() {
-  device->each([&](deviceElem* device) {
-    String page = FPSTR(HTML_DEVICES);
-    page.replace("{id}", String(device->deviceId));
-    page.replace("{name}", String(device->name));
-    page.replace("{online}", (device->online ? "<span class=\"label label-success\">ONLINE</span>" : "<span class=\"label label-danger\">OFFLINE</span>"));
-    page.replace("{ip}", String(device->ip));
-    page.replace("{lastUpdated}", time(device->lastUpdate));
-    webServer->sendContent(page);
-  });
+  if(device) {
+    device->each([&](deviceElem* device) {
+      String page = FPSTR(HTML_DEVICES);
+      page.replace("{id}", String(device->deviceId));
+      page.replace("{name}", String(device->name));
+      page.replace("{online}", (device->online ? "<span class=\"label label-success\">ONLINE</span>" : "<span class=\"label label-danger\">OFFLINE</span>"));
+      page.replace("{ip}", String(device->ip));
+      page.replace("{lastUpdated}", time(device->lastUpdate));
+      webServer->sendContent(page);
+    });
+  }
 }
 
 void WebPortal::sendConfigs() {
