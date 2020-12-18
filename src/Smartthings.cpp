@@ -48,8 +48,9 @@ String Smartthings::getAsJson() {
 
     // Construct json
     entries->each([&](Entry* entry) {
-        if(entry->isIn()) {
-            root[getName(entries, entry)] = entry->getValue();
+        String value = entry->getValue();
+        if(value != NULL) {
+            root[getName(entries, entry)] = value;
         }
     });
 
