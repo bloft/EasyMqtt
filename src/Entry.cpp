@@ -1,8 +1,6 @@
 #include "Entry.h"
 #include <FS.h>
 
-#define DEBUG
-
 std::function<void(Entry*, String)> Entry::getPublishFunction() {
   if(publishFunction == NULL && parent) {
     return parent->getPublishFunction();
@@ -78,7 +76,9 @@ void Entry::debug(String key, String value) {
 }
 
 void Entry::debug(String msg) {
-  Serial.println(msg);
+  #ifdef DEBUG
+    Serial.println(msg);
+  #endif
 }
 
 void Entry::callback(const char* topic, uint8_t* payload, unsigned int length) {

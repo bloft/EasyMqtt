@@ -14,7 +14,9 @@ Smartthings:: Smartthings(String ns, String deviceHandler) {
 }
 
 void Smartthings::setup(Entry *entries, Config *config, String name) {
-    Serial.printf("Starting Smartthings...\n");
+    #ifdef DEBUG
+        Serial.printf("Starting Smartthings...\n");
+    #endif
 
     Smartthings::entries = entries;
     Smartthings::config = config;
@@ -24,10 +26,9 @@ void Smartthings::setup(Entry *entries, Config *config, String name) {
     webServer->on("/state.json", HTTP_GET, std::bind(&Smartthings::handleState, this));
     webServer->on("/description.xml", HTTP_GET, std::bind(&Smartthings::handleDescription, this));
     webServer->on("/update", HTTP_PUT, std::bind(&Smartthings::handleUpdate, this));
-    webServer->on("/subscribe", HTTP_POST, std::bind(&Smartthings::handleSubscribe, this));
     webServer->begin();
 
-    SSDP.setName("Test");
+    SSDP.setName(name);
 	SSDP.begin();
 }
 
@@ -60,23 +61,26 @@ String Smartthings::getAsJson() {
 }
 
 void Smartthings::handleState() {
-    Serial.println("Smartthings -> State");
+    #ifdef DEBUG
+        Serial.println("Smartthings -> State");
+    #endif
     webServer->send(200, "application/json", getAsJson());
 }
 
 bool Smartthings::sendState() {
     String callback = config->get("st.callback", "");
     if (callback.length() > 0) {
-        Serial.println("Smartthings -> publish");
-        Serial.print("Callback: ");
-		Serial.println(callback);
+        #ifdef DEBUG
+            Serial.println("Smartthings -> publish");
+            Serial.print("Callback: ");
+            Serial.println(callback);
+        #endif
 
         WiFiClient client = webServer->client();
         HTTPClient http;
 	    http.begin(client, callback);
 	    http.addHeader("Content-Type", "application/json");
 	    int code = http.POST(getAsJson()); 
-	    Serial.printf("POST Returned %d\n", code);
 	    http.end();
         return code >= 200 && code < 400;
     }
@@ -84,40 +88,34 @@ bool Smartthings::sendState() {
 }
 
 void Smartthings::handleDescription() {
-    Serial.println("Smartthings -> Description");
+    #ifdef DEBUG
+        Serial.println("Smartthings -> Description");
+    #endif
     SSDP.schema(webServer->client());
 }
 
-void Smartthings::handleSubscribe() {
-    Serial.println("Smartthings -> Subscribe");
-
-	DynamicJsonBuffer jsonBuffer(200);
-	JsonObject& json = jsonBuffer.parseObject(webServer->arg("plain"));
-	if (!json.success()) {
-		webServer->send(500, "application/json", "{}");
-	} else {
-        Serial.print("Updated with new callback: ");
-        Serial.println(json["callback"].asString());
-        config->set("st.callback", json["callback"].asString());
-		webServer->send(200, "application/json", "{}");
-	}
-}
-
 void Smartthings::handleUpdate() {
-    Serial.println("Smartthings -> Update");
+    #ifdef DEBUG
+        Serial.println("Smartthings -> Update");
+    #endif
     DynamicJsonBuffer jsonBuffer(200);
 	JsonObject& json = jsonBuffer.parseObject(webServer->arg("plain"));
     if (!json.success()) {
 		webServer->send(500, "application/json", "{}");
 	} else {
+        if(json.containsKey("smartthings.callback")) {
+            config->set("st.callback", json["smartthings.callback"].asString());
+        }
         // Handle update
         entries->each([&](Entry* entry) {
             String name = getName(entries, entry);
             if(entry->isOut() && json.containsKey(name)) {
-                Serial.print("Smartthings -> Update -> ");
-                Serial.print(name);
-                Serial.print(" = ");
-                Serial.println(json[name].asString());
+                #ifdef DEBUG
+                    Serial.print("Smartthings -> Update -> ");
+                    Serial.print(name);
+                    Serial.print(" = ");
+                    Serial.println(json[name].asString());
+                #endif
                 entry->setValue(json[name].asString(), true);
             }
         });
