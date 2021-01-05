@@ -119,7 +119,7 @@ void Smartthings::handleUpdate() {
                 entry->setValue(json[name].asString(), true);
             }
         });
-		webServer->send(200, "application/json", "{}");
+		webServer->send(200, "application/json", getAsJson());
 	}
 }
 
