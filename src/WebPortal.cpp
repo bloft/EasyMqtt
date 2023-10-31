@@ -278,7 +278,7 @@ void WebPortal::restHandler(bool isWeb) {
 void WebPortal::handleSaveConfig() {
   if(!auth()) return;
   config->each([&](char* key, char *value) {
-    if(!(String(key)).endsWith("password") || strlen(webServer->arg(key).c_str()) > 0) {
+  if(!(String(key)).endsWith("password") || strlen(webServer->arg(key).c_str()) > 0) {
       config->set(key, webServer->arg(key).c_str());
     } 
   });
