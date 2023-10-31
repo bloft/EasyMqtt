@@ -2,7 +2,7 @@
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
-#include "FS.h"
+#include <SPIFFS.h>
 
 Config::Config() {
   SPIFFS.begin();

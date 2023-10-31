@@ -1,6 +1,11 @@
 #pragma once
 
-#include <ESP8266WiFi.h>
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+  #include <WiFi.h>
+#endif
+
 #include <WiFiUdp.h>
 
 #define SEVENZYYEARS 2208988800UL

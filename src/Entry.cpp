@@ -1,5 +1,8 @@
 #include "Entry.h"
-#include <FS.h>
+#include <SPIFFS.h>
+//#include <FS.h>
+
+#define DEBUG
 
 std::function<void(Entry*, String)> Entry::getPublishFunction() {
   if(publishFunction == NULL && parent) {
@@ -11,6 +14,17 @@ std::function<void(Entry*, String)> Entry::getPublishFunction() {
 Entry::Entry(const char* name) {
   Entry::name = (char*)malloc(strlen(name)+1);
   strcpy(Entry::name, name);
+}
+
+bool Entry::contains(const char* name) {
+  Entry *child = children;
+  while (child != NULL) {
+    if (strcmp(child->name, name) == 0) {
+      return true;
+    }
+    child = child->next;
+  }
+  return false;
 }
 
 Entry *Entry::getOrCreate(const char* name) {
@@ -79,11 +93,11 @@ void Entry::debug(String msg) {
 void Entry::callback(const char* topic, uint8_t* payload, unsigned int length) {
   if (strcmp(getTopic().c_str(), topic) == 0) {
     String _payload = "";
-    for (int i = 0; i < length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
       _payload += (char)payload[i];
     }
     if(!isIn() || (millis() - lastPublish) > 1000 || strcmp(lastValue, _payload.c_str()) != 0) {
-      update(_payload);
+      setValue(_payload, true);
     }
   }
 }
@@ -92,11 +106,11 @@ void Entry::update() {
   if (isIn()) {
     unsigned long time = millis();
     if (time >= (lastUpdate + (getInterval() * 1000)) || lastUpdate == 0) {
-      force++;
+      getForce() > 0 ? force++ : force = getForce(); // Don't force 
       lastUpdate = time;
       String value = inFunction();
       if (value != "") {
-          if(setValue(value.c_str(), force > getForce())) {
+          if(updateValue(value.c_str(), force > getForce(), false)) {
             force = 0;
           }
       }
@@ -108,6 +122,10 @@ void Entry::update(String payload) {
   if (isOut()) {
     outFunction(payload);
   }
+}
+
+bool Entry::isSetter() {
+  return isOut() && strcmp(name, "set") == 0;
 }
 
 bool Entry::isIn() {
@@ -146,10 +164,6 @@ int Entry::getInterval() {
   return interval;
 }
 
-void Entry::setInterval(int interval) {
-  this->interval = interval;
-}
-
 void Entry::setInterval(int interval, int force) {
   this->interval = interval;
   forceUpdate = force;
@@ -162,8 +176,21 @@ void Entry::setPersist(bool persist) {
     if (f) {
       setValue(f.readStringUntil('\n').c_str(), true);
       f.close();
+
     }
   }
+}
+
+void Entry::reset() {
+  SPIFFS.remove(getTopic());
+}
+
+EntryType Entry::getType() {
+  return type;
+}
+
+void Entry::setType(EntryType type) {
+  this->type = type;
 }
 
 int Entry::getForce() {
@@ -177,24 +204,36 @@ char *Entry::getValue() {
   return lastValue;
 }
 
-bool Entry::setValue(const char *value, bool force) {
+bool Entry::updateValue(const char *value, bool force, bool callUpdate) {
   if(force || !lastValue || strcmp(value, lastValue) != 0) {
-    lastUpdate = millis();
-    if(lastValue) {
-      free(lastValue);
-    }
-    lastValue = (char*)malloc(strlen(value)+1);
-    strcpy(lastValue, value);
+    setValue(value, callUpdate);
     publish(value);
-
-    if(persist) {
-      File f = SPIFFS.open(getTopic(), "w");
-      f.println(value);
-      f.close();
-    } 
     return true;
   }
   return false;
+}
+
+void Entry::setValue(const char *value, bool callUpdate) {
+  lastUpdate = millis();
+  if(lastValue) {
+    free(lastValue);
+  }
+  lastValue = (char*)malloc(strlen(value)+1);
+  strcpy(lastValue, value);
+
+  if(callUpdate) {
+    update(String(lastValue));
+  }
+
+  if(persist) {
+    File f = SPIFFS.open(getTopic(), "w");
+    f.println(value);
+    f.close();
+  }
+}
+
+void Entry::setValue(String value, bool callUpdate) {
+  setValue(value.c_str(), callUpdate);
 }
 
 long Entry::getLastUpdate() {
@@ -207,6 +246,21 @@ void Entry::publish(const char *message) {
     lastPublish = millis();
     function(this, String(message));
   }
+}
+
+void Entry::publish(String message) {
+  publish(message.c_str());
+}
+
+String Entry::eachToString(std::function<String(Entry*)> f) {
+  String res = "";
+  res += f(this);
+  Entry* child = children;
+  while (child != NULL) {
+    res += child->eachToString(f);
+    child = child->next;
+  }
+  return res;
 }
 
 void Entry::each(std::function<void(Entry*)> f) {
@@ -226,6 +280,12 @@ Entry & Entry::get(const char* name) {
     subName = strtok(NULL, "/");
   }
   return *entry;
+}
+
+void Entry::reportValue() {
+  inFunction = [&]() {
+    return String(getValue());
+  };
 }
 
 Entry & Entry::operator[](int index) {
@@ -249,9 +309,10 @@ void Entry::operator<<(std::function<char *()> inFunction) {
   };
 }
 
-void Entry::operator<<(std::function<float()> inFunction) {
+void Entry::operator<<(std::function<double()> inFunction) {
+  type = EntryType::number;
   Entry::inFunction = [&, inFunction]() {
-    float value = inFunction();
+    double value = inFunction();
     if(isnan(value)) {
       return String("");
     } else {
@@ -260,6 +321,55 @@ void Entry::operator<<(std::function<float()> inFunction) {
   };
 }
 
+void Entry::onOff(std::function<char *()> inFunction) {
+  type = EntryType::onOff;
+  Entry::inFunction = [&, inFunction]() {
+    char *value = inFunction();
+    // ToDo: Validate value
+    return value;
+  };
+}
+
+void Entry::onOff(std::function<void(String payload)> outFunction) {
+  type = EntryType::onOff;
+  Entry::outFunction = outFunction;
+}
+
+void Entry::openClose(std::function<char *()> inFunction) {
+  type = EntryType::openClose;
+  Entry::inFunction = [&, inFunction]() {
+    char *value = inFunction();
+    // ToDo: Validate value
+    return value;
+  };
+}
+
+void Entry::openClose(std::function<void(String payload)> outFunction) {
+  type = EntryType::openClose;
+  Entry::outFunction = outFunction;
+}
+
+void Entry::color(std::function<void(uint8_t red, uint8_t green, uint8_t blue)> outFunction) {
+  type = EntryType::colorRGB;
+  Entry::outFunction = [&, outFunction](String payload) {
+    int commaIndex = payload.indexOf(',');
+    int secondCommaIndex = payload.indexOf(',', commaIndex + 1);
+
+    String firstValue = payload.substring(0, commaIndex);
+    String secondValue = payload.substring(commaIndex + 1, secondCommaIndex);
+    String thirdValue = payload.substring(secondCommaIndex + 1);
+
+    outFunction(firstValue.toInt(), secondValue.toInt(), thirdValue.toInt());
+  };
+}
+
 void Entry::operator>>(std::function<void(String payload)> outFunction) {
   Entry::outFunction = outFunction;
+}
+
+void Entry::operator>>(std::function<void(long payload)> outFunction) {
+  type = EntryType::number;
+  Entry::outFunction = [&, outFunction](String payload) {
+    outFunction(payload.toInt());
+  };
 }

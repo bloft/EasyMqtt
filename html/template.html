@@ -33,9 +33,9 @@
       }
   </style>
   <script type="application/javascript">
-    function sendValue(input) {
-        $.ajax(input.dataset.url,{
-          'data': $(input).closest("form").find("input").val(), 
+    function sendValue(url, input) {
+        $.ajax(url,{
+          'data': input, 
           'type': 'POST',
           'processData': false,
           'contentType': 'application/json'
@@ -46,13 +46,7 @@
         var ele = $(this);
         $.getJSON( ele.data("ajaxurl"), function (data) {
           var eleValue =  $(ele.find("#value")[0]);
-          if(data.value.toUpperCase() == "OPEN") {
-            eleValue.html("<span class=\"label label-success\">" + data.value + "</span>");
-          } else if(data.value.toUpperCase() == "CLOSE") {
-            eleValue.html("<span class=\"label label-danger\">" + data.value + "</span>");
-           } else {
-            eleValue.html(data.value);
-           }
+          eleValue.html(data.webValue);
           var eleTime = $(ele.find(".panel-footer span")[0]);
           eleTime.html(data.updated);
          });
@@ -73,8 +67,11 @@
           </div>
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
-				      <li role="presentation" class="active"><a href="#devices" aria-controls="devices" role="tab" data-toggle="tab">
-                <span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Devices
+				      <li role="presentation" class="active"><a href="#sensors" aria-controls="sensors" role="tab" data-toggle="tab">
+                <span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Sensors
+              </a></li>
+				      <li role="presentation"><a href="#devices" aria-controls="devices" role="tab" data-toggle="tab">
+                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Devices
               </a></li>
 				      <li role="presentation"><a href="#config" aria-controls="config" role="tab" data-toggle="tab">
                 <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Config
@@ -87,7 +84,7 @@
         </div>
       </nav>
 			<div class="tab-content panel panel-default">
-				<div role="tabpanel" class="tab-pane active" id="devices">
+				<div role="tabpanel" class="tab-pane active" id="sensors">
           <br />
           <div class="container-fluid">
   		      <div class="row" style="min-height: 600px">
@@ -120,14 +117,14 @@
                         <div class="input-group">
                           <input type="text" class="form-control" placeholder="value">
                           <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" data-url="{path}" onclick="sendValue(this);">
+                            <button class="btn btn-default" type="button" onclick="sendValue('{path}', $(this).closest('form').find('input').val());">
                               Send
                             </button>
                           </span>
                         </div>
                       </form>
                     </li>
-<!-- split:sensnor_input -->
+<!-- split:sensor_input -->
 <!-- split:sensor_output -->
                     <li class="list-group-item" style="font-size: 24px;">
                       <span id="value">{value}</span>
@@ -145,10 +142,10 @@
                   <ul class="list-group">
                     <li class="list-group-item" style="font-size: 24px;">
 <!-- split:value_on -->
-                    <span class="label label-success">{value}</span>
+                    <span class='label label-success'>{value}</span>
 <!-- split:value_on -->
 <!-- split:value_off -->
-                    <span class="label label-danger">{value}</span>
+                    <span class='label label-danger'>{value}</span>
 <!-- split:value_off -->
                     </li>
                   </ul>
@@ -179,7 +176,7 @@
                         <div class="input-group">
                           <input type="text" class="form-control" placeholder="value">
                           <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" data-url="{path}" onclick="sendValue(this);">
+                            <button class="btn btn-default" type="button" onclick="sendValue('{path}', $(this).closest('form').find('input').val());">
                               Send
                             </button>
                           </span>
@@ -200,11 +197,24 @@
                 </div>
               </div>
 
-              <!-- Single sensor info -->
-	    	      <div class="col-md-4">
-                <div class="panel panel-info">
-                  <div class="panel-heading"><strong>lamp/mode</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">LNOR</div>
+              <div class="col-md-4">
+                <div class="panel panel-primary">
+                  <div class="panel-heading"><strong>model</strong></div>
+                  <ul class="list-group">
+<!-- split:sensor_input_onoff -->
+                    <li class="list-group-item">
+                      <form>
+                        <div class="input-group">
+                          <button class="btn btn-default" type="button" onclick="sendValue('{path}', 'ON');">ON</button>
+                          <button class="btn btn-default" type="button" onclick="sendValue('{path}', 'OFF');">OFF</button>
+                        </div>
+                      </form>
+                    </li>
+<!-- split:sensor_input_onoff -->
+                    <li class="list-group-item" style="font-size: 24px;">
+                      <span class="label label-success">ON</span>
+                    </li>
+                  </ul>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                 </div>
               </div>
@@ -222,7 +232,11 @@
 	    	      <div class="col-md-4">
                 <div class="panel panel-info">
                   <div class="panel-heading"><strong>audio/volume</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">#FF0000</div>
+                  <div class="panel-body" style="font-size: 24px;">
+<!-- split:value_color -->
+                    <div style='background-color: rgb({value})' class='label'>{value}</div>
+<!-- split:value_color -->
+                  </div>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                 </div>
               </div>
@@ -231,7 +245,7 @@
 	    	      <div class="col-md-4">
                 <div class="panel panel-info">
                   <div class="panel-heading"><strong>picture/aspect</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">AUTO</div>
+                  <div class="panel-body" style="font-size: 24px;"><div style='background-color: rgb(0, 255, 136)' class='label'>0, 255, 136</div></div>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                 </div>
               </div>
@@ -277,12 +291,45 @@
           </div>
 				</div>
 
+        <div role="tabpanel" class="tab-pane" id="devices">
+          <div class="container-fluid">
+            <div class="row" style="min-height: 600px">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Online</th>
+                      <th>IP</th>
+                      <th>Last seen</th>
+                      <th>Link</th>
+                    </tr>
+                  </thead>
+<!-- split:main2 -->
+<!-- split:devices -->
+                  <tr>
+                    <td>{id}</td>
+                    <td>{name}</td>
+                    <td>{online}</td>
+                    <td>{ip}</td>
+                    <td>{lastUpdated}</td>
+                    <td><a href="http://{ip}">Link</a></td>
+                  </tr>
+<!-- split:devices -->
+<!-- split:main3 -->
+                </table>
+             </div>
+           </div>
+          </div>
+				</div>
+
         <div role="tabpanel" class="tab-pane" id="config">
           <div class="container-fluid">
             <div class="row">
               <div class="col-md-12">
                 <form class="form-horizontal" action="/save" method="POST">
-<!-- split:main2 -->
+<!-- split:main3 -->
                   <br />
                   <h3>wifi</h3><hr/>
                   <div class="form-group">
@@ -335,7 +382,7 @@
                     </div>
                   </div>
 <!-- split:config_entry -->
-<!-- split:main3 -->
+<!-- split:main4 -->
                   <hr/>
                   <div class="form-group">
                     <div class="col-sm-offset-9 col-sm-2">
@@ -362,7 +409,7 @@
                 <hr />
                 <h3>MQTT API:</h3>
                 <ul class="list-group">
-<!-- split:main3 -->
+<!-- split:main4 -->
                   <li class="list-group-item">
                     {path}
                     <span class="badge">Set</span>
@@ -372,12 +419,12 @@
                     EasyMqtt/123456/model
                     <span class="badge">Get</span>
                   </li>
-<!-- split:main4 -->
+<!-- split:main5 -->
                 </ul>
                 <hr />
                 <h3>Rest API:</h3>
                 <ul class="list-group">
-<!-- split:main4 -->
+<!-- split:main5 -->
 <!-- split:api_doc -->
                   <li class="list-group-item">
                     {path}
@@ -397,7 +444,7 @@
                     <span class="badge">GET</span>
                     <span class="badge">POST</span>
                   </li>
-<!-- split:main5 -->
+<!-- split:main6 -->
                 </ul>
               </div>
             </div>
@@ -412,4 +459,4 @@
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   </body>
 </html>
-<!-- split:main5 -->
+<!-- split:main6 -->
