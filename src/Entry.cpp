@@ -1,5 +1,6 @@
 #include "Entry.h"
-#include <FS.h>
+#include <SPIFFS.h>
+//#include <FS.h>
 
 #define DEBUG
 
@@ -105,7 +106,7 @@ void Entry::update() {
   if (isIn()) {
     unsigned long time = millis();
     if (time >= (lastUpdate + (getInterval() * 1000)) || lastUpdate == 0) {
-      force++;
+      getForce() > 0 ? force++ : force = getForce(); // Don't force 
       lastUpdate = time;
       String value = inFunction();
       if (value != "") {
@@ -299,12 +300,10 @@ Entry & Entry::operator[](const char* name) {
 }
 
 void Entry::operator<<(std::function<String()> inFunction) {
-  type = EntryType::text;
   Entry::inFunction = inFunction;
 }
 
 void Entry::operator<<(std::function<char *()> inFunction) {
-  type = EntryType::text;
   Entry::inFunction = [&, inFunction]() {
     return String(inFunction());
   };

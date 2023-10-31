@@ -24,15 +24,19 @@ void WebPortal::setup(Entry *mqttEntry, Device *device, Config *config, NTPClien
   WebPortal::device = device;
   WebPortal::ntp = ntpClient;
   mqtt->debug("Setup Web Portal");
-  webServer.reset(new ESP8266WebServer(80));
+  
+  #if defined(ESP8266)
+    webServer.reset(new ESP8266WebServer(80));
+  #elif defined(ESP32)
+    webServer.reset(new WebServer(80));
+  #endif
+  
   webServer->on("/", std::bind(&WebPortal::handleRoot, this));
   webServer->on("/save", std::bind(&WebPortal::handleSaveConfig, this));
   webServer->on("/rest", std::bind(&WebPortal::handleRestAll, this));
   mqtt->each([&](Entry* entry) {
     webServer->on(getRestPath("/rest", entry).c_str(), std::bind(&WebPortal::handleRest, this));
-  });
-  mqtt->each([&](Entry* entry) {
-    webServer->on(getRestPath("/web-rest", entry).c_str(), std::bind(&WebPortal::handleWebRest, this));
+    webServer->on(getRestPath("/web", entry).c_str(), std::bind(&WebPortal::handleWebRest, this));
   });
   webServer->onNotFound(std::bind(&WebPortal::handleNotFound, this));
   webServer->begin();
@@ -91,7 +95,11 @@ void WebPortal::sendSensor(Entry* entry) {
   bool include = false;
   if(entry->isOut()) {
     include = true;
-    page.replace("{input}", FPSTR(HTML_SENSOR_INPUT));
+    if(entry->getType() == EntryType::onOff) {
+      page.replace("{input}", FPSTR(HTML_SENSOR_INPUT_ONOFF));
+    } else {
+      page.replace("{input}", FPSTR(HTML_SENSOR_INPUT));
+    }
   } else {
     page.replace("{input}", "");
   }
@@ -104,9 +112,34 @@ void WebPortal::sendSensor(Entry* entry) {
     page.replace("{output}", "");
   }
   if(include) {
-    page.replace("{path}", getRestPath("/web-rest", entry));
+    page.replace("{path}", getRestPath("/web", entry));
     page.replace("{last_updated}", time(entry->getLastUpdate()));
     webServer->sendContent(page);
+  }
+}
+
+String WebPortal::typeValue(Entry* entry) {
+  switch (entry->getType()) {
+  case EntryType::onOff:
+    if(String(entry->getValue()).equalsIgnoreCase("on")) {
+      return FPSTR(HTML_VALUE_ON);
+    } else if(String(entry->getValue()).equalsIgnoreCase("off")) {
+      return FPSTR(HTML_VALUE_OFF);
+    } else {
+      return "{value}";
+    }
+  case EntryType::openClose:
+    if(String(entry->getValue()).equalsIgnoreCase("open")) {
+      return FPSTR(HTML_VALUE_OFF);
+    } else if(String(entry->getValue()).equalsIgnoreCase("close")) {
+      return FPSTR(HTML_VALUE_ON);
+    } else {
+      return "{value}";
+    }
+  case EntryType::colorRGB:
+    return FPSTR(HTML_VALUE_COLOR);
+  default:
+    return "{value}";
   }
 }
 
@@ -115,10 +148,9 @@ String WebPortal::webValue(Entry* entry) {
   if(getName(entry).endsWith("password")) {
     value = "***";
   }
-  if(entry->getType() == EntryType::colorRGB) {
-    value = "<div style='background-color: red' class='color-box' />" + value;
-  }
-  return value;
+  String webValue = typeValue(entry);
+  webValue.replace("{value}", value);
+  return webValue;
 }
 
 void WebPortal::sendDevices() {
@@ -184,7 +216,7 @@ String WebPortal::toJson(Entry *entry, bool isWeb) {
       }
     }
     if(isWeb) {
-      json += "\"update\":\"" + webValue(entry) + "\",";  
+      json += "\"webValue\":\"" + webValue(entry) + "\",";  
     }
     json += "\"updated\":\"" + time(entry->getLastUpdate()) + "\",";
   }
@@ -232,7 +264,7 @@ void WebPortal::handleWebRest() {
 
 void WebPortal::restHandler(bool isWeb) {
   if(!auth()) return;
-  Entry* entry = &mqtt->get(webServer->uri().substring(6).c_str());
+  Entry* entry = &mqtt->get(webServer->uri().substring(webServer->uri().indexOf("/", 2) + 1).c_str());
   if(webServer->method() == HTTP_GET) {
     webServer->send(200, "application/json", toJson(entry, isWeb));
   } else if(webServer->method() == HTTP_POST && entry->isOut()) {

@@ -5,10 +5,10 @@
 
 NTPClient::NTPClient() {
   WiFiUDP ntp();
-  this->udp.begin(123);
 }
 
 void NTPClient::update() {
+  this->udp.begin(123);
   this->sendNTPPacket();
   byte timeout = 0;
   int cb = 0;
@@ -28,6 +28,7 @@ void NTPClient::update() {
   unsigned long secsSince1900 = highWord << 16 | lowWord;
 
   localEpoc = secsSince1900 - SEVENZYYEARS;
+  this->udp.stop();
 }
 
 void NTPClient::sendNTPPacket() {

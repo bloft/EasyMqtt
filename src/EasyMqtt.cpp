@@ -1,9 +1,13 @@
 #include "EasyMqtt.h"
 
-#include <ESP8266WiFi.h>
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+  #include <WiFi.h>
+#endif
+
 #include <PubSubClient.h>
-#include <ArduinoOTA.h>
-#include <FS.h>
+#include <SPIFFS.h>
 
 /**
   * Handle connections to mqtt
@@ -17,12 +21,13 @@ void EasyMqtt::connectWiFi() {
     if(WiFi.status() != WL_CONNECTED) {
       if(wifiDelay == 0) {
         debug("Connecting to wifi");
+        WiFi.setAutoReconnect(true);
         WiFi.begin(config().get("wifi.ssid", ""), config().get("wifi.password", ""));
         wifiDelay = millis() + 10000; // 10 sec
       } else if(wifiDelay < millis()) {
         debug("WiFi connection timeout - Setup AP");
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("EasyMqtt", "123456");
+        WiFi.softAP("EasyMqtt", "12345678");
         debug("IP address", WiFi.softAPIP().toString());
         wifiDelay = millis() + 300000; // 5 min
       }
@@ -100,6 +105,9 @@ void EasyMqtt::connectMqtt() {
 }
 
 EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
+}
+
+void EasyMqtt::init() {
   // Add config entry
   cfg = new Config();
   cfg->load();
@@ -109,14 +117,16 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
   // Add time(NTP)
   ntpClient = new NTPClient();
 
-  deviceId = config().get("device.id", String(ESP.getChipId()).c_str());
-
-  char * password = config().get("password", "");
-  if(strlen(password) > 0) {
-    ArduinoOTA.setPassword(password);
-  }
-  ArduinoOTA.setHostname(deviceId.c_str());
-  ArduinoOTA.begin();
+  
+  #if defined(ESP8266)
+    deviceId = config().get("device.id", String(ESP.getChipId()).c_str());
+  #elif defined(ESP32)
+    uint32_t chipId = 0;
+    for(int i=0; i<17; i=i+8) {
+      chipId |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
+    }
+    deviceId = config().get("device.name", String(chipId).c_str());
+  #endif
 
   setInterval(30, 10); // Check every 30 Sec and force update after 10 (5 min) unchanged
 
@@ -149,24 +159,27 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     return WiFi.macAddress();
   };
 
+  
+
   get("$system")["mem"]["heap"] << []() {
     return ESP.getFreeHeap();
   };
+
+  /*
+
   get("$system")["fs"]["usedBytes"] << []() {
-    FSInfo fs_info;
-    SPIFFS.info(fs_info);
-    return fs_info.usedBytes;
+    return SPIFFS.usedBytes();
   };
+
   get("$system")["fs"]["totalBytes"] << []() {
-    FSInfo fs_info;
-    SPIFFS.info(fs_info);
-    return fs_info.totalBytes;
+    return SPIFFS.totalBytes();
   };
+
   get("$system")["fs"]["usage"] << []() {
-    FSInfo fs_info;
-    SPIFFS.info(fs_info);
-    return (fs_info.usedBytes / fs_info.totalBytes) * 100;
+    return (SPIFFS.usedBytes() / SPIFFS.totalBytes()) * 100;
   };
+
+      */
 
   get("$system")["online"] << []() {
     return "ON";
@@ -242,9 +255,15 @@ EasyMqtt::EasyMqtt() : Entry("easyMqtt") {
     }
   };
 
+
+
+
+#if defined(ESP8266)
   get("$system")["reset"]["reason"] << [this]() {
     return ESP.getResetReason();
   };
+#endif
+
 }
 
 String EasyMqtt::getDeviceId() {
@@ -285,18 +304,22 @@ void EasyMqtt::reset() {
   Configure wifi
   */
 void EasyMqtt::wifi(const char* ssid, const char* password) {
-  config().get("wifi.ssid", ssid);
-  config().get("wifi.password", password);
+  config().set("wifi.ssid", ssid);
+  config().set("wifi.password", password);
 }
 
 /**
   Configure mqtt
   */
 void EasyMqtt::mqtt(const char* host, int port, const char* username, const char* password) {
-  config().get("mqtt.host", host);
-  config().get("mqtt.port", String(port).c_str());
-  config().get("mqtt.username", username);
-  config().get("mqtt.password", password);
+  config().set("mqtt.host", host);
+  config().set("mqtt.port", String(port).c_str());
+  config().set("mqtt.username", username);
+  config().set("mqtt.password", password);
+}
+
+void EasyMqtt::setDeviceName(const char* name) {
+  config().set("device.name", name);
 }
 
 /**
@@ -305,7 +328,6 @@ void EasyMqtt::mqtt(const char* host, int port, const char* username, const char
 void EasyMqtt::loop() {
   connectWiFi();
   if(WiFi.status() == WL_CONNECTED) {
-    ArduinoOTA.handle();
     connectMqtt();
     if(mqttClient.connected()) {
       mqttClient.loop();

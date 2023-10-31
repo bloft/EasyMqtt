@@ -33,9 +33,9 @@
       }
   </style>
   <script type="application/javascript">
-    function sendValue(input) {
-        $.ajax(input.dataset.url,{
-          'data': $(input).closest("form").find("input").val(), 
+    function sendValue(url, input) {
+        $.ajax(url,{
+          'data': input, 
           'type': 'POST',
           'processData': false,
           'contentType': 'application/json'
@@ -46,13 +46,7 @@
         var ele = $(this);
         $.getJSON( ele.data("ajaxurl"), function (data) {
           var eleValue =  $(ele.find("#value")[0]);
-          if(data.value.toUpperCase() == "OPEN") {
-            eleValue.html("<span class=\"label label-success\">" + data.value + "</span>");
-          } else if(data.value.toUpperCase() == "CLOSE") {
-            eleValue.html("<span class=\"label label-danger\">" + data.value + "</span>");
-           } else {
-            eleValue.html(data.value);
-           }
+          eleValue.html(data.webValue);
           var eleTime = $(ele.find(".panel-footer span")[0]);
           eleTime.html(data.updated);
          });
@@ -123,14 +117,14 @@
                         <div class="input-group">
                           <input type="text" class="form-control" placeholder="value">
                           <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" data-url="{path}" onclick="sendValue(this);">
+                            <button class="btn btn-default" type="button" onclick="sendValue('{path}', $(this).closest('form').find('input').val());">
                               Send
                             </button>
                           </span>
                         </div>
                       </form>
                     </li>
-<!-- split:sensnor_input -->
+<!-- split:sensor_input -->
 <!-- split:sensor_output -->
                     <li class="list-group-item" style="font-size: 24px;">
                       <span id="value">{value}</span>
@@ -148,10 +142,10 @@
                   <ul class="list-group">
                     <li class="list-group-item" style="font-size: 24px;">
 <!-- split:value_on -->
-                    <span class="label label-success">{value}</span>
+                    <span class='label label-success'>{value}</span>
 <!-- split:value_on -->
 <!-- split:value_off -->
-                    <span class="label label-danger">{value}</span>
+                    <span class='label label-danger'>{value}</span>
 <!-- split:value_off -->
                     </li>
                   </ul>
@@ -182,7 +176,7 @@
                         <div class="input-group">
                           <input type="text" class="form-control" placeholder="value">
                           <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" data-url="{path}" onclick="sendValue(this);">
+                            <button class="btn btn-default" type="button" onclick="sendValue('{path}', $(this).closest('form').find('input').val());">
                               Send
                             </button>
                           </span>
@@ -203,11 +197,24 @@
                 </div>
               </div>
 
-              <!-- Single sensor info -->
-	    	      <div class="col-md-4">
-                <div class="panel panel-info">
-                  <div class="panel-heading"><strong>lamp/mode</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">LNOR</div>
+              <div class="col-md-4">
+                <div class="panel panel-primary">
+                  <div class="panel-heading"><strong>model</strong></div>
+                  <ul class="list-group">
+<!-- split:sensor_input_onoff -->
+                    <li class="list-group-item">
+                      <form>
+                        <div class="input-group">
+                          <button class="btn btn-default" type="button" onclick="sendValue('{path}', 'ON');">ON</button>
+                          <button class="btn btn-default" type="button" onclick="sendValue('{path}', 'OFF');">OFF</button>
+                        </div>
+                      </form>
+                    </li>
+<!-- split:sensor_input_onoff -->
+                    <li class="list-group-item" style="font-size: 24px;">
+                      <span class="label label-success">ON</span>
+                    </li>
+                  </ul>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                 </div>
               </div>
@@ -225,7 +232,11 @@
 	    	      <div class="col-md-4">
                 <div class="panel panel-info">
                   <div class="panel-heading"><strong>audio/volume</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">#FF0000</div>
+                  <div class="panel-body" style="font-size: 24px;">
+<!-- split:value_color -->
+                    <div style='background-color: rgb({value})' class='label'>{value}</div>
+<!-- split:value_color -->
+                  </div>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                 </div>
               </div>
@@ -234,7 +245,7 @@
 	    	      <div class="col-md-4">
                 <div class="panel panel-info">
                   <div class="panel-heading"><strong>picture/aspect</strong></div>
-                  <div class="panel-body" style="font-size: 24px;">AUTO</div>
+                  <div class="panel-body" style="font-size: 24px;"><div style='background-color: rgb(0, 255, 136)' class='label'>0, 255, 136</div></div>
                   <div class="panel-footer" style="padding: 5px 15px; font-size: 85%"><strong>Last updated:</strong> 2017-09-29 8:30:23</div> 
                 </div>
               </div>

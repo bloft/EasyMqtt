@@ -1,6 +1,11 @@
 #pragma once
 
-#include <ESP8266WiFi.h>
+#if defined(ESP8266)
+   #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+   #include <WiFi.h>
+#endif
+
 #include <PubSubClient.h>
 #include "Entry.h"
 #include "Config.h"
@@ -37,6 +42,8 @@ class EasyMqtt : public Entry {
   public:
     EasyMqtt();
 
+    void init();
+
     String getDeviceId();
     
     virtual String getTopic();
@@ -65,6 +72,8 @@ class EasyMqtt : public Entry {
        Deprecated
     */
     void mqtt(const char* host, int port, const char* username, const char* password);
+
+    void setDeviceName(const char* name);
 
     /**
        Handle the normal loop

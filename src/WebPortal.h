@@ -1,6 +1,11 @@
 #pragma once
 
-#include <ESP8266WebServer.h>
+#if defined(ESP8266)
+  #include <ESP8266WebServer.h>
+#elif defined(ESP32)
+  #include <WebServer.h>
+#endif
+
 #include "Entry.h"
 #include "Config.h"
 #include "Device.h"
@@ -10,7 +15,11 @@
 
 class WebPortal {
   private:
+    #if defined(ESP8266)
     std::unique_ptr<ESP8266WebServer> webServer;
+    #elif defined(ESP32)
+    std::unique_ptr<WebServer> webServer;
+    #endif
     Entry* mqtt;
     Config* config;
     Device* device;
@@ -31,6 +40,7 @@ class WebPortal {
     void sendRestApi(Entry* entry);
 
     String toJson(Entry* entry, bool isWeb);
+    String typeValue(Entry* entry);
     String webValue(Entry* entry);
 
   public:
